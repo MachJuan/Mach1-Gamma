@@ -1,0 +1,110 @@
+name: Mach1 MES Price Update
+
+on:
+  schedule:
+    # Every 5 minutes, Monday-Friday
+    - cron: "*/5 * * * 1-5"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-mes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch delayed MES data
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.request
+          from datetime import datetime, timezone
+
+          url = (
+              "https://query1.finance.yahoo.com/v8/finance/chart/"
+              "MES=F?range=1d&interval=5m&includePrePost=true"
+          )
+
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "Mozilla/5.0"
+              }
+          )
+
+          with urllib.request.urlopen(request, timeout=30) as response:
+              data = json.load(response)
+
+          result = data["chart"]["result"][0]
+
+          timestamps = result["timestamp"]
+          quotes = result["indicators"]["quote"][0]
+
+          candles = []
+
+          for i, timestamp in enumerate(timestamps):
+
+              o = quotes["open"][i]
+              h = quotes["high"][i]
+              l = quotes["low"][i]
+              c = quotes["close"][i]
+              v = quotes["volume"][i]
+
+              if None in (o, h, l, c):
+                  continue
+
+              candles.append({
+                  "time": timestamp,
+                  "open": o,
+                  "high": h,
+                  "low": l,
+                  "close": c,
+                  "volume": v or 0
+              })
+
+          output = {
+              "symbol": "MES",
+              "source": "Yahoo Finance / CME delayed data",
+              "delay_minutes": 10,
+              "interval": "5m",
+              "updated_utc": datetime.now(
+                  timezone.utc
+              ).isoformat(),
+              "candles": candles
+          }
+
+          with open("data/mes.json", "w") as f:
+              json.dump(output, f, indent=2)
+
+          print(
+              f"Saved {len(candles)} MES candles."
+          )
+          PY
+
+      - name: Commit MES data
+        run: |
+          git config user.name "Mach1 MES Bot"
+          git config user.email "actions@github.com"
+
+          git add data/mes.json
+
+          if git diff --cached --quiet; then
+            echo "No MES data changes."
+          else
+            git commit -m "Auto-update MES price data"
+
+            git pull --rebase origin main
+            git push origin main
+          fi
