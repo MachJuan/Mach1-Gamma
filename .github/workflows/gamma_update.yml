@@ -2,7 +2,6 @@ name: Mach1 Gamma Auto Update
 
 on:
   schedule:
-    # Runs Monday-Friday at 6:35 AM New York time
     - cron: "35 10 * * 1-5"
   workflow_dispatch:
 
@@ -16,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,11 +37,13 @@ jobs:
           git config user.name "Mach1 Gamma Bot"
           git config user.email "actions@github.com"
 
-          git add data/ || true
+          git add data/
 
           if git diff --cached --quiet; then
             echo "No gamma data changes."
           else
             git commit -m "Auto-update Mach1 Gamma levels"
-            git push
+
+            git pull --rebase origin main
+            git push origin main
           fi
