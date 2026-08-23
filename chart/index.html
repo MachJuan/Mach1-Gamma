@@ -6,10 +6,6 @@
 
     <title>Mach1 Gamma — MES</title>
 
-    <script
-        src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js">
-    </script>
-
     <style>
         html, body {
             margin: 0;
@@ -23,23 +19,26 @@
         }
 
         #topbar {
-            height: 70px;
+            min-height: 72px;
             display: flex;
             align-items: center;
-            gap: 30px;
+            gap: 28px;
             padding: 0 20px;
             box-sizing: border-box;
             background: #111820;
             border-bottom: 1px solid #26313d;
+            flex-wrap: wrap;
         }
 
         .title {
             font-size: 20px;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .level {
             font-size: 14px;
+            white-space: nowrap;
         }
 
         .call {
@@ -57,11 +56,62 @@
         .regime {
             margin-left: auto;
             font-weight: bold;
+            white-space: nowrap;
+        }
+
+        #updated {
+            font-size: 11px;
+            color: #8b98a5;
+            white-space: nowrap;
         }
 
         #chart {
             width: 100%;
-            height: calc(100% - 70px);
+            height: calc(100% - 72px);
+        }
+
+        .tradingview-widget-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tradingview-widget-container__widget {
+            width: 100%;
+            height: calc(100% - 32px);
+        }
+
+        .tradingview-widget-copyright {
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #8b98a5;
+        }
+
+        .tradingview-widget-copyright a {
+            color: #8b98a5;
+            text-decoration: none;
+        }
+
+        @media (max-width: 900px) {
+            #topbar {
+                min-height: 105px;
+                gap: 10px 18px;
+                padding: 10px 15px;
+            }
+
+            .title {
+                width: 100%;
+            }
+
+            .regime {
+                margin-left: 0;
+            }
+
+            #chart {
+                height: calc(100% - 105px);
+            }
         }
     </style>
 </head>
@@ -75,226 +125,184 @@
     </div>
 
     <div class="level call">
-        CALL WALL: <span id="callWall">---</span>
+        CALL WALL:
+        <span id="callWall">---</span>
     </div>
 
     <div class="level flip">
-        GAMMA FLIP: <span id="gammaFlip">---</span>
+        GAMMA FLIP:
+        <span id="gammaFlip">---</span>
     </div>
 
     <div class="level put">
-        PUT WALL: <span id="putWall">---</span>
+        PUT WALL:
+        <span id="putWall">---</span>
     </div>
 
     <div class="regime" id="regime">
         ---
     </div>
 
+    <div id="updated">
+        Gamma: ---
+    </div>
+
 </div>
 
-<div id="chart"></div>
+<div id="chart">
+
+    <!-- TradingView Widget BEGIN -->
+    <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+
+        <div class="tradingview-widget-copyright">
+            <a
+                href="https://www.tradingview.com/"
+                target="_blank"
+                rel="noopener nofollow"
+            >
+                Charts by TradingView
+            </a>
+        </div>
+
+        <script
+            type="text/javascript"
+            src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+            async
+        >
+        {
+            "autosize": true,
+            "symbol": "CME_MINI:MES1!",
+            "interval": "5",
+            "timezone": "Asia/Manila",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "backgroundColor": "rgba(11,15,20,1)",
+            "gridColor": "rgba(38,49,61,0.35)",
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "allow_symbol_change": false,
+            "save_image": false,
+            "calendar": false,
+            "withdateranges": true,
+            "hide_side_toolbar": false,
+            "details": false,
+            "hotlist": false,
+            "studies": [],
+            "support_host": "https://www.tradingview.com"
+        }
+        </script>
+    </div>
+    <!-- TradingView Widget END -->
+
+</div>
+
 
 <script>
 
 const DATA_URL =
     "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
-const chartContainer =
-    document.getElementById("chart");
 
-const chart =
-    LightweightCharts.createChart(
-        chartContainer,
-        {
-            layout: {
-                background: {
-                    color: "#0b0f14"
-                },
-                textColor: "#d9e1e8"
-            },
+function updateGamma(data) {
 
-            grid: {
-                vertLines: {
-                    visible: false
-                },
-                horzLines: {
-                    visible: false
-                }
-            },
-
-            rightPriceScale: {
-                borderVisible: false
-            },
-
-            timeScale: {
-                borderVisible: false,
-                timeVisible: true,
-                secondsVisible: false
-            }
-        }
-    );
-
-const candleSeries =
-    chart.addSeries(
-        LightweightCharts.CandlestickSeries,
-        {
-            upColor: "#26a69a",
-            downColor: "#ef5350",
-            borderVisible: false,
-            wickUpColor: "#26a69a",
-            wickDownColor: "#ef5350"
-        }
-    );
-
-
-// ------------------------------------------------------------
-// TEST MES DATA
-// ------------------------------------------------------------
-
-function generateTestData() {
-
-    const data = [];
-
-    let price = 7691.25;
-
-    const now =
-        Math.floor(Date.now() / 1000);
-
-    const fiveMinutes =
-        5 * 60;
-
-    for (let i = 120; i >= 0; i--) {
-
-        const time =
-            now - (i * fiveMinutes);
-
-        const open =
-            price;
-
-        const movement =
-            (Math.random() - 0.5) * 12;
-
-        const close =
-            open + movement;
-
-        const high =
-            Math.max(open, close)
-            + Math.random() * 5;
-
-        const low =
-            Math.min(open, close)
-            - Math.random() * 5;
-
-        data.push({
-            time: time,
-            open: open,
-            high: high,
-            low: low,
-            close: close
-        });
-
-        price = close;
-    }
-
-    return data;
-}
-
-
-candleSeries.setData(
-    generateTestData()
-);
-
-
-// ------------------------------------------------------------
-// GAMMA LINES
-// ------------------------------------------------------------
-
-let callLine = null;
-let flipLine = null;
-let putLine = null;
-
-
-function updateGammaLines(data) {
-
-    if (callLine) {
-        candleSeries.removePriceLine(callLine);
-    }
-
-    if (flipLine) {
-        candleSeries.removePriceLine(flipLine);
-    }
-
-    if (putLine) {
-        candleSeries.removePriceLine(putLine);
+    if (!data) {
+        return;
     }
 
 
-    callLine =
-        candleSeries.createPriceLine({
-            price: data.call_wall,
-            color: "#ff5252",
-            lineWidth: 2,
-            lineStyle: 0,
-            axisLabelVisible: true,
-            title: "CALL WALL"
-        });
+    // --------------------------------------------------------
+    // GAMMA LEVELS
+    // --------------------------------------------------------
+
+    if (data.call_wall !== undefined) {
+
+        document.getElementById("callWall")
+            .textContent =
+            Number(data.call_wall).toFixed(2);
+
+    }
 
 
-    flipLine =
-        candleSeries.createPriceLine({
-            price: data.gamma_flip,
-            color: "#ffd740",
-            lineWidth: 2,
-            lineStyle: 0,
-            axisLabelVisible: true,
-            title: "GAMMA FLIP"
-        });
+    if (data.gamma_flip !== undefined) {
+
+        document.getElementById("gammaFlip")
+            .textContent =
+            Number(data.gamma_flip).toFixed(2);
+
+    }
 
 
-    putLine =
-        candleSeries.createPriceLine({
-            price: data.put_wall,
-            color: "#69f0ae",
-            lineWidth: 2,
-            lineStyle: 0,
-            axisLabelVisible: true,
-            title: "PUT WALL"
-        });
+    if (data.put_wall !== undefined) {
+
+        document.getElementById("putWall")
+            .textContent =
+            Number(data.put_wall).toFixed(2);
+
+    }
 
 
-    document.getElementById("callWall")
-        .textContent =
-        Number(data.call_wall).toFixed(2);
+    // --------------------------------------------------------
+    // GAMMA REGIME
+    // --------------------------------------------------------
 
-    document.getElementById("gammaFlip")
-        .textContent =
-        Number(data.gamma_flip).toFixed(2);
-
-    document.getElementById("putWall")
-        .textContent =
-        Number(data.put_wall).toFixed(2);
-
-
-    const regimeElement =
+    const regime =
         document.getElementById("regime");
 
-    regimeElement.textContent =
+    regime.textContent =
         data.regime || "---";
 
+
     if (data.regime === "NEGATIVE_GAMMA") {
-        regimeElement.style.color = "#ff5252";
+
+        regime.style.color = "#ff5252";
+
     }
+
     else if (data.regime === "POSITIVE_GAMMA") {
-        regimeElement.style.color = "#69f0ae";
+
+        regime.style.color = "#69f0ae";
+
     }
+
     else {
-        regimeElement.style.color = "#ffffff";
+
+        regime.style.color = "#ffffff";
+
     }
+
+
+    // --------------------------------------------------------
+    // UPDATE TIME
+    // --------------------------------------------------------
+
+    if (data.updated_utc) {
+
+        const date =
+            new Date(data.updated_utc);
+
+        document.getElementById("updated")
+            .textContent =
+            "Gamma: " +
+            date.toLocaleString(
+                "en-US",
+                {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZone: "Asia/Manila"
+                }
+            );
+
+    }
+
 }
 
 
 // ------------------------------------------------------------
-// LOAD GITHUB GAMMA DATA
+// LOAD GAMMA DATA
 // ------------------------------------------------------------
 
 async function loadGamma() {
@@ -306,30 +314,43 @@ async function loadGamma() {
                 DATA_URL + "?t=" + Date.now()
             );
 
+
         if (!response.ok) {
+
             throw new Error(
                 "HTTP " + response.status
             );
+
         }
+
 
         const data =
             await response.json();
 
+
         console.log(
-            "Mach1 Gamma data:",
+            "Mach1 Gamma:",
             data
         );
 
-        updateGammaLines(data);
+
+        updateGamma(data);
 
     }
+
     catch (error) {
 
         console.error(
-            "Gamma data error:",
+            "Mach1 Gamma error:",
             error
         );
+
+        document.getElementById("updated")
+            .textContent =
+            "Gamma: data unavailable";
+
     }
+
 }
 
 
@@ -341,38 +362,12 @@ loadGamma();
 
 
 // ------------------------------------------------------------
-// AUTOMATIC GAMMA REFRESH
+// REFRESH GAMMA EVERY MINUTE
 // ------------------------------------------------------------
 
 setInterval(
     loadGamma,
     60 * 1000
-);
-
-
-// ------------------------------------------------------------
-// RESPONSIVE CHART
-// ------------------------------------------------------------
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        chart.resize(
-            chartContainer.clientWidth,
-            chartContainer.clientHeight
-        );
-
-    }
-);
-
-
-// ------------------------------------------------------------
-// TRADINGVIEW ATTRIBUTION
-// ------------------------------------------------------------
-
-console.log(
-    "Charts powered by TradingView Lightweight Charts"
 );
 
 </script>
