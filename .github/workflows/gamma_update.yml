@@ -2,7 +2,20 @@ name: Mach1 Gamma Auto Update
 
 on:
   schedule:
-    - cron: "35 10 * * 1-5"
+    # Philippines Time (PHT / UTC+8)
+    #
+    # 1:00 PM PHT  = 05:00 UTC
+    # 3:00 PM PHT  = 07:00 UTC
+    # 5:00 PM PHT  = 09:00 UTC
+    # 7:00 PM PHT  = 11:00 UTC
+    # 9:00 PM PHT  = 13:00 UTC
+    # 11:00 PM PHT = 15:00 UTC
+    # 1:00 AM PHT  = 17:00 UTC
+    # 3:00 AM PHT  = 19:00 UTC
+    #
+    # Monday-Friday UTC schedule
+    - cron: "0 5,7,9,11,13,15,17,19 * * 1-5"
+
   workflow_dispatch:
 
 permissions:
