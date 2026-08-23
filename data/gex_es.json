@@ -2,11 +2,13 @@
   "indicator": "Mach1 Gamma",
   "symbol": "MES",
   "source": "SPX options",
+  "method": "Filtered + smoothed GEX",
+  "max_dte": 45,
   "spx_spot": 7674.37,
   "es_spot": 7691.25,
-  "call_wall": 8016.88,
-  "gamma_flip": 7731.95,
+  "call_wall": 7816.88,
+  "gamma_flip": null,
   "put_wall": 7616.88,
-  "regime": "NEGATIVE_GAMMA",
-  "updated_utc": "2026-08-23T03:12:17.734101+00:00"
+  "regime": "UNKNOWN",
+  "updated_utc": "2026-08-23T03:52:25.528329+00:00"
 }
