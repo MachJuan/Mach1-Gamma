@@ -22,102 +22,36 @@ from scipy.stats import norm
 #   CALL WALL
 #   GAMMA FLIP
 #   PUT WALL
-#
-# Design goals:
-#   - Reduce noisy isolated strikes
-#   - Focus on relevant expirations
-#   - Stabilize Gamma Flip
-#   - Detect meaningful wall clusters
 # ============================================================
-
 
 OUTPUT_FILE = "data/gex_es.json"
 
 RISK_FREE_RATE = 0.04
 
 # ------------------------------------------------------------
-# EXPIRATION FILTER
+# FILTERS
 # ------------------------------------------------------------
 
-# Intraday MES trading does not need a 90-DTE profile.
 MAX_DTE = 45
-
-
-# ------------------------------------------------------------
-# OPTION FILTERS
-# ------------------------------------------------------------
-
-# Ignore very small OI positions.
 MIN_OPEN_INTEREST = 20
-
-# Ignore options that are extremely far from spot.
-# This keeps the profile focused on the active region.
 MAX_DISTANCE_FROM_SPOT = 0.15
 
-
-# ------------------------------------------------------------
-# GAMMA FLIP SEARCH
-# ------------------------------------------------------------
-
+# Gamma flip search range
 FLIP_RANGE = 0.06
+FLIP_STEPS = 401
 
-# More resolution than before.
-FLIP_STEPS = 301
-
-
-# ------------------------------------------------------------
-# PROFILE SMOOTHING
-# ------------------------------------------------------------
-
-# Strike-window smoothing.
-# Higher = smoother / less noisy.
+# Profile smoothing
 SMOOTHING_WINDOW = 5
 
-
-# ------------------------------------------------------------
-# WALL SETTINGS
-# ------------------------------------------------------------
-
-# Only strong gamma concentrations qualify.
+# Wall detection
 WALL_PERCENTILE = 80
-
-# A wall must be reasonably close to spot.
 MAX_WALL_DISTANCE = 0.12
-
-# Number of neighboring strikes used to confirm
-# a meaningful gamma cluster.
 WALL_CLUSTER_RADIUS = 2
 
 
-# ------------------------------------------------------------
-# BLACK-SCHOLES GAMMA
-# ------------------------------------------------------------
-
-def bs_gamma(S, K, T, sigma, r):
-
-    if S <= 0 or K <= 0 or T <= 0 or sigma <= 0:
-        return 0.0
-
-    try:
-
-        d1 = (
-            math.log(S / K)
-            + (r + 0.5 * sigma * sigma) * T
-        ) / (sigma * math.sqrt(T))
-
-        return (
-            norm.pdf(d1)
-            / (S * sigma * math.sqrt(T))
-        )
-
-    except Exception:
-
-        return 0.0
-
-
-# ------------------------------------------------------------
+# ============================================================
 # SAFE NUMBER
-# ------------------------------------------------------------
+# ============================================================
 
 def num(value, default=0.0):
 
@@ -138,9 +72,9 @@ def num(value, default=0.0):
         return default
 
 
-# ------------------------------------------------------------
+# ============================================================
 # SPX SPOT
-# ------------------------------------------------------------
+# ============================================================
 
 def get_spx_spot():
 
@@ -170,9 +104,9 @@ def get_spx_spot():
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # ES FUTURES PRICE
-# ------------------------------------------------------------
+# ============================================================
 
 def get_es_price():
 
@@ -200,9 +134,9 @@ def get_es_price():
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET SPX OPTIONS
-# ------------------------------------------------------------
+# ============================================================
 
 def get_options():
 
@@ -268,9 +202,11 @@ def get_options():
             chains.append(calls)
             chains.append(puts)
 
-        except Exception:
+        except Exception as e:
 
-            continue
+            print(
+                f"Skipping expiration {expiration}: {e}"
+            )
 
     if not chains:
 
@@ -281,9 +217,9 @@ def get_options():
     return chains
 
 
-# ------------------------------------------------------------
-# CONVERT CHAINS TO ARRAYS
-# ------------------------------------------------------------
+# ============================================================
+# PREPARE OPTIONS
+# ============================================================
 
 def prepare_options(
     spot,
@@ -329,7 +265,6 @@ def prepare_options(
             if iv <= 0.0001:
                 continue
 
-            # Ignore very far OTM options.
             if abs(
                 strike / spot - 1.0
             ) > MAX_DISTANCE_FROM_SPOT:
@@ -371,9 +306,9 @@ def prepare_options(
     )
 
 
-# ------------------------------------------------------------
-# CALCULATE GEX FOR A PRICE
-# ------------------------------------------------------------
+# ============================================================
+# CALCULATE GEX AT PRICE
+# ============================================================
 
 def calculate_gex_at_price(
     price,
@@ -383,6 +318,9 @@ def calculate_gex_at_price(
     dte,
     signs
 ):
+
+    if price <= 0:
+        return np.nan
 
     T = np.maximum(
         dte / 365.0,
@@ -410,10 +348,7 @@ def calculate_gex_at_price(
         price * iv * sqrt_T
     )
 
-    # Near-term contracts receive more influence,
-    # but the weighting is capped so 0DTE cannot
-    # completely dominate the profile.
-
+    # Moderate weighting toward shorter expirations.
     dte_weight = 1.0 / np.sqrt(
         np.maximum(dte, 1.0)
     )
@@ -440,9 +375,9 @@ def calculate_gex_at_price(
     )
 
 
-# ------------------------------------------------------------
-# BUILD STRIKE GEX PROFILE
-# ------------------------------------------------------------
+# ============================================================
+# BUILD GEX PROFILE
+# ============================================================
 
 def build_gex_profile(
     spot,
@@ -521,25 +456,22 @@ def build_gex_profile(
             * local_signs
         )
 
-        total = np.nansum(
-            gex
-        )
-
         profile[
             float(strike)
-        ] = float(total)
+        ] = float(
+            np.nansum(gex)
+        )
 
     return profile
 
 
-# ------------------------------------------------------------
+# ============================================================
 # SMOOTH PROFILE
-# ------------------------------------------------------------
+# ============================================================
 
 def smooth_profile(profile):
 
     if len(profile) < 3:
-
         return profile
 
     strikes = np.array(
@@ -555,25 +487,18 @@ def smooth_profile(profile):
         dtype=float
     )
 
-    # Simple moving average.
-    # Keeps the engine dependency-light
-    # and removes isolated spikes.
-
-    kernel_size = (
-        SMOOTHING_WINDOW
-    )
+    kernel_size = SMOOTHING_WINDOW
 
     if kernel_size <= 1:
-
         return profile
 
     if kernel_size > len(values):
-
         kernel_size = len(values)
 
-    kernel = np.ones(
-        kernel_size
-    ) / kernel_size
+    kernel = (
+        np.ones(kernel_size)
+        / kernel_size
+    )
 
     smoothed = np.convolve(
         values,
@@ -581,7 +506,6 @@ def smooth_profile(profile):
         mode="same"
     )
 
-    # Preserve edge values reasonably.
     half = kernel_size // 2
 
     if half > 0:
@@ -596,9 +520,16 @@ def smooth_profile(profile):
     }
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FIND GAMMA FLIP
-# ------------------------------------------------------------
+#
+# Improved method:
+# 1. Search for actual zero crossings.
+# 2. Rank crossings by strength and distance.
+# 3. If no clean crossing exists, return the
+#    strongest near-zero point instead of immediately
+#    returning null.
+# ============================================================
 
 def find_gamma_flip(
     spot,
@@ -609,15 +540,8 @@ def find_gamma_flip(
     signs
 ):
 
-    low = (
-        spot
-        * (1.0 - FLIP_RANGE)
-    )
-
-    high = (
-        spot
-        * (1.0 + FLIP_RANGE)
-    )
+    low = spot * (1.0 - FLIP_RANGE)
+    high = spot * (1.0 + FLIP_RANGE)
 
     prices = np.linspace(
         low,
@@ -640,44 +564,32 @@ def find_gamma_flip(
                 signs
             )
 
-            values.append(
-                value
-            )
+            values.append(value)
 
         except Exception:
 
-            values.append(
-                np.nan
-            )
+            values.append(np.nan)
 
     values = np.array(
         values,
         dtype=float
     )
 
-    if not np.any(
-        np.isfinite(values)
-    ):
+    valid = np.isfinite(values)
 
+    if not np.any(valid):
         return None
 
     finite_values = np.abs(
-        values[
-            np.isfinite(values)
-        ]
+        values[valid]
     )
 
     if len(finite_values) == 0:
-
         return None
-
-    # Ignore tiny zero crossings.
-    # A crossing is more meaningful when
-    # the surrounding GEX is substantial.
 
     strength_threshold = np.percentile(
         finite_values,
-        35
+        25
     )
 
     candidates = []
@@ -696,73 +608,96 @@ def find_gamma_flip(
         if not np.isfinite(b):
             continue
 
-        if a * b >= 0:
-            continue
+        # Actual sign change
+        if a * b < 0:
 
-        surrounding_strength = (
-            abs(a) + abs(b)
-        ) / 2.0
+            strength = (
+                abs(a) + abs(b)
+            ) / 2.0
 
-        if (
-            surrounding_strength
-            < strength_threshold
-        ):
+            if strength < strength_threshold:
+                continue
 
-            continue
+            p1 = prices[i - 1]
+            p2 = prices[i]
 
-        p1 = prices[i - 1]
-        p2 = prices[i]
+            if b != a:
 
-        if b == a:
-            continue
+                flip = (
+                    p1
+                    + (-a)
+                    * (p2 - p1)
+                    / (b - a)
+                )
 
-        flip = (
-            p1
-            + (0.0 - a)
-            * (p2 - p1)
-            / (b - a)
-        )
+                candidates.append(
+                    (
+                        float(flip),
+                        float(strength)
+                    )
+                )
 
-        candidates.append(
-            (
-                float(flip),
-                surrounding_strength
+    # --------------------------------------------------------
+    # If a genuine crossing exists, choose the strongest
+    # crossing with preference for proximity to spot.
+    # --------------------------------------------------------
+
+    if candidates:
+
+        candidates.sort(
+            key=lambda x: (
+                abs(x[0] - spot),
+                -x[1]
             )
         )
 
-    if not candidates:
+        return candidates[0][0]
 
-        return None
-
-    # Prefer the strongest meaningful crossing.
+    # --------------------------------------------------------
+    # FALLBACK
     #
-    # If two are close in strength, prefer the
-    # one closest to current SPX.
+    # Sometimes the calculated GEX curve does not cross zero
+    # inside the selected range. Instead of producing null,
+    # identify the price where absolute GEX is smallest.
+    #
+    # This gives us a "zero-GEX zone" approximation.
+    # --------------------------------------------------------
 
-    candidates.sort(
-        key=lambda x: (
-            -x[1],
-            abs(x[0] - spot)
-        )
+    abs_values = np.abs(values)
+
+    abs_values[
+        ~np.isfinite(abs_values)
+    ] = np.inf
+
+    index = int(
+        np.argmin(abs_values)
     )
 
-    strongest = candidates[0]
-
-    # Prevent a distant pathological crossing
-    # from becoming the active flip.
-
-    if abs(
-        strongest[0] / spot - 1.0
-    ) > FLIP_RANGE:
+    if not np.isfinite(
+        abs_values[index]
+    ):
 
         return None
 
-    return strongest[0]
+    fallback_flip = float(
+        prices[index]
+    )
+
+    # Only accept fallback if it is reasonably close
+    # to current SPX.
+
+    if abs(
+        fallback_flip / spot - 1.0
+    ) <= FLIP_RANGE:
+
+        return fallback_flip
+
+    return None
 
 
-# ------------------------------------------------------------
+# ============================================================
 # WALL CLUSTER SCORE
-# ------------------------------------------------------------
+# ============================================================
 
 def cluster_score(
     values,
@@ -785,7 +720,6 @@ def cluster_score(
         values[start:end]
     )
 
-    # Center strike receives slightly more weight.
     weights = np.ones(
         len(cluster)
     )
@@ -803,9 +737,9 @@ def cluster_score(
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FIND WALLS
-# ------------------------------------------------------------
+# ============================================================
 
 def find_walls(
     profile,
@@ -832,9 +766,9 @@ def find_walls(
     call_wall = None
     put_wall = None
 
-    # ========================================================
+    # --------------------------------------------------------
     # CALL WALL
-    # ========================================================
+    # --------------------------------------------------------
 
     positive = values > 0
 
@@ -861,13 +795,9 @@ def find_walls(
             if strikes[i] < spot:
                 continue
 
-            if (
-                abs(
-                    strikes[i] / spot
-                    - 1.0
-                )
-                > MAX_WALL_DISTANCE
-            ):
+            if abs(
+                strikes[i] / spot - 1.0
+            ) > MAX_WALL_DISTANCE:
 
                 continue
 
@@ -888,9 +818,6 @@ def find_walls(
 
         if candidates:
 
-            # Strong cluster first,
-            # then closest to spot.
-
             candidates.sort(
                 key=lambda x: (
                     -x[0],
@@ -900,9 +827,9 @@ def find_walls(
 
             call_wall = candidates[0][2]
 
-    # ========================================================
+    # --------------------------------------------------------
     # PUT WALL
-    # ========================================================
+    # --------------------------------------------------------
 
     negative = values < 0
 
@@ -929,18 +856,15 @@ def find_walls(
             if abs(
                 values[i]
             ) < threshold:
+
                 continue
 
             if strikes[i] > spot:
                 continue
 
-            if (
-                abs(
-                    strikes[i] / spot
-                    - 1.0
-                )
-                > MAX_WALL_DISTANCE
-            ):
+            if abs(
+                strikes[i] / spot - 1.0
+            ) > MAX_WALL_DISTANCE:
 
                 continue
 
@@ -976,9 +900,9 @@ def find_walls(
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # REGIME
-# ------------------------------------------------------------
+# ============================================================
 
 def get_regime(
     spot,
@@ -986,23 +910,20 @@ def get_regime(
 ):
 
     if flip is None:
-
         return "UNKNOWN"
 
     if spot > flip:
-
         return "POSITIVE_GAMMA"
 
     if spot < flip:
-
         return "NEGATIVE_GAMMA"
 
     return "AT_FLIP"
 
 
-# ------------------------------------------------------------
+# ============================================================
 # SPX → ES
-# ------------------------------------------------------------
+# ============================================================
 
 def convert_to_es(
     spx_level,
@@ -1011,11 +932,9 @@ def convert_to_es(
 ):
 
     if spx_level is None:
-
         return None
 
     if es_spot is None:
-
         return spx_level
 
     basis = (
@@ -1029,35 +948,22 @@ def convert_to_es(
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # MAIN
-# ------------------------------------------------------------
+# ============================================================
 
 def main():
 
-    print(
-        "==================================="
-    )
-
-    print(
-        "       MACH1 GAMMA ENGINE"
-    )
-
-    print(
-        "       MES INTRADAY MODE"
-    )
-
-    print(
-        "==================================="
-    )
+    print("===================================")
+    print("       MACH1 GAMMA ENGINE")
+    print("       MES INTRADAY MODE")
+    print("===================================")
 
     # --------------------------------------------------------
     # SPX
     # --------------------------------------------------------
 
-    print(
-        "Getting SPX price..."
-    )
+    print("Getting SPX price...")
 
     spx_spot = get_spx_spot()
 
@@ -1069,9 +975,7 @@ def main():
     # ES
     # --------------------------------------------------------
 
-    print(
-        "Getting ES price..."
-    )
+    print("Getting ES price...")
 
     es_spot = get_es_price()
 
@@ -1166,7 +1070,7 @@ def main():
     # --------------------------------------------------------
 
     print(
-        "Finding meaningful Gamma Flip..."
+        "Finding Gamma Flip..."
     )
 
     gamma_flip_spx = find_gamma_flip(
@@ -1314,7 +1218,6 @@ def main():
             datetime.now(
                 timezone.utc
             ).isoformat()
-
     }
 
     # --------------------------------------------------------
@@ -1345,15 +1248,9 @@ def main():
     # --------------------------------------------------------
 
     print("")
-    print(
-        "==================================="
-    )
-    print(
-        "          MACH1 GAMMA"
-    )
-    print(
-        "==================================="
-    )
+    print("===================================")
+    print("          MACH1 GAMMA")
+    print("===================================")
 
     print(
         f"CALL WALL : {output['call_wall']}"
@@ -1375,11 +1272,8 @@ def main():
         f"UPDATED   : {output['updated_utc']}"
     )
 
-    print(
-        "==================================="
-    )
+    print("===================================")
 
 
 if __name__ == "__main__":
-
     main()
