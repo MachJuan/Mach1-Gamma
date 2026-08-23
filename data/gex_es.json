@@ -7,8 +7,8 @@
   "spx_spot": 7674.37,
   "es_spot": 7691.25,
   "call_wall": 7816.88,
-  "gamma_flip": null,
+  "gamma_flip": 7732.69,
   "put_wall": 7616.88,
-  "regime": "UNKNOWN",
-  "updated_utc": "2026-08-23T03:52:25.528329+00:00"
+  "regime": "NEGATIVE_GAMMA",
+  "updated_utc": "2026-08-23T04:21:12.093840+00:00"
 }
