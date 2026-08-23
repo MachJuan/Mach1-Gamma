@@ -2,6 +2,7 @@ name: Mach1 MES Price Update
 
 on:
   schedule:
+    # Every 5 minutes, Monday-Friday
     - cron: "*/5 * * * 1-5"
 
   workflow_dispatch:
@@ -45,42 +46,63 @@ jobs:
 
           print("Requesting MES data...")
 
-          with urllib.request.urlopen(request, timeout=30) as response:
-              raw = response.read().decode("utf-8")
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  raw = response.read().decode("utf-8")
 
-          data = json.loads(raw)
+              data = json.loads(raw)
+
+          except Exception as e:
+              print(f"Could not retrieve Yahoo data: {e}")
+              raise SystemExit(0)
 
           chart = data.get("chart", {})
           result_list = chart.get("result")
 
           if not result_list:
-              print("Yahoo did not return chart data.")
-              print(json.dumps(data, indent=2)[:5000])
-              raise SystemExit(1)
+              print("MES data unavailable.")
+              print("This normally means the market is closed.")
+              raise SystemExit(0)
 
           result = result_list[0]
 
           timestamps = result.get("timestamp")
 
-          if not timestamps:
-              print("Yahoo returned no timestamps.")
-              print(json.dumps(result, indent=2)[:5000])
-              raise SystemExit(1)
+          indicators = result.get("indicators", {})
+          quote_list = indicators.get("quote", [])
 
-          quotes = result["indicators"]["quote"][0]
+          if not timestamps or not quote_list:
+              print("MES market currently has no candle data.")
+              print("Workflow will exit normally.")
+              raise SystemExit(0)
+
+          quotes = quote_list[0]
+
+          opens = quotes.get("open", [])
+          highs = quotes.get("high", [])
+          lows = quotes.get("low", [])
+          closes = quotes.get("close", [])
+          volumes = quotes.get("volume", [])
 
           candles = []
 
           for i, timestamp in enumerate(timestamps):
 
-              o = quotes["open"][i]
-              h = quotes["high"][i]
-              l = quotes["low"][i]
-              c = quotes["close"][i]
-              v = quotes["volume"][i]
+              if i >= len(opens):
+                  continue
+
+              o = opens[i]
+              h = highs[i]
+              l = lows[i]
+              c = closes[i]
 
               if None in (o, h, l, c):
                   continue
+
+              v = 0
+
+              if i < len(volumes) and volumes[i] is not None:
+                  v = volumes[i]
 
               candles.append({
                   "time": timestamp,
@@ -88,12 +110,13 @@ jobs:
                   "high": h,
                   "low": l,
                   "close": c,
-                  "volume": v or 0
+                  "volume": v
               })
 
           if not candles:
-              print("No valid MES candles were returned.")
-              raise SystemExit(1)
+              print("No valid MES candles available.")
+              print("Market may be closed.")
+              raise SystemExit(0)
 
           output = {
               "symbol": "MES",
@@ -109,12 +132,12 @@ jobs:
           with open("data/mes.json", "w") as f:
               json.dump(output, f, indent=2)
 
-          print(f"SUCCESS: Saved {len(candles)} MES candles.")
-
-          latest = candles[-1]
+          print(
+              f"SUCCESS: Saved {len(candles)} MES candles."
+          )
 
           print(
-              f"Latest MES close: {latest['close']}"
+              f"Latest MES price: {candles[-1]['close']}"
           )
           PY
 
