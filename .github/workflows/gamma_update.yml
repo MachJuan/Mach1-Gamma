@@ -1,0 +1,46 @@
+name: Mach1 Gamma Auto Update
+
+on:
+  schedule:
+    # Runs Monday-Friday at 6:35 AM New York time
+    - cron: "35 10 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-gamma:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Mach1 Gamma engine
+        run: |
+          python generate_gex.py
+
+      - name: Commit updated gamma data
+        run: |
+          git config user.name "Mach1 Gamma Bot"
+          git config user.email "actions@github.com"
+
+          git add data/ || true
+
+          if git diff --cached --quiet; then
+            echo "No gamma data changes."
+          else
+            git commit -m "Auto-update Mach1 Gamma levels"
+            git push
+          fi
