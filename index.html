@@ -6,6 +6,8 @@
 
     <title>Mach1 Gamma — MES</title>
 
+    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -21,10 +23,6 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
-
-        /* =====================================================
-           HEADER
-        ===================================================== */
 
         #header {
             height: 76px;
@@ -82,10 +80,6 @@
             white-space: nowrap;
         }
 
-        /* =====================================================
-           MAIN LAYOUT
-        ===================================================== */
-
         #main {
             width: 100%;
             height: calc(100% - 76px);
@@ -96,11 +90,13 @@
             flex: 1;
             height: 100%;
             min-width: 0;
+            position: relative;
         }
 
-        /* =====================================================
-           RIGHT PANEL
-        ===================================================== */
+        #chartContainer {
+            position: absolute;
+            inset: 0;
+        }
 
         #panel {
             width: 230px;
@@ -160,27 +156,18 @@
             color: #8b98a5;
         }
 
-        /* =====================================================
-           TRADINGVIEW
-        ===================================================== */
-
-        .tradingview-widget-container {
-            width: 100%;
-            height: 100%;
+        #chartStatus {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            z-index: 10;
+            padding: 6px 9px;
+            border-radius: 4px;
+            background: rgba(11,15,20,0.85);
+            color: #8b98a5;
+            font-size: 11px;
+            pointer-events: none;
         }
-
-        .tradingview-widget-container__widget {
-            width: 100%;
-            height: 100%;
-        }
-
-        .tradingview-widget-copyright {
-            display: none;
-        }
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
 
         @media (max-width: 900px) {
 
@@ -242,10 +229,6 @@
 
 <body>
 
-<!-- =========================================================
-     HEADER
-========================================================= -->
-
 <div id="header">
 
     <div class="brand">
@@ -278,58 +261,18 @@
 </div>
 
 
-<!-- =========================================================
-     MAIN
-========================================================= -->
-
 <div id="main">
-
-    <!-- =====================================================
-         TRADINGVIEW MES CHART
-    ====================================================== -->
 
     <div id="chart">
 
-        <div class="tradingview-widget-container">
-
-            <div class="tradingview-widget-container__widget"></div>
-
-            <script
-                type="text/javascript"
-                src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
-                async>
-            {
-                "autosize": true,
-                "symbol": "CME_MINI:MES1!",
-                "interval": "5",
-                "timezone": "Asia/Manila",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "backgroundColor": "rgba(11,15,20,1)",
-                "gridColor": "rgba(38,49,61,0.35)",
-                "hide_top_toolbar": false,
-                "hide_legend": false,
-                "allow_symbol_change": false,
-                "save_image": false,
-                "calendar": false,
-                "withdateranges": true,
-                "hide_side_toolbar": false,
-                "details": false,
-                "hotlist": false,
-                "studies": [],
-                "support_host": "https://www.tradingview.com"
-            }
-            </script>
-
+        <div id="chartStatus">
+            Loading MES market data...
         </div>
+
+        <div id="chartContainer"></div>
 
     </div>
 
-
-    <!-- =====================================================
-         MACH1 GAMMA PANEL
-    ====================================================== -->
 
     <div id="panel">
 
@@ -376,15 +319,15 @@
         <div class="info">
 
             <div>
-                <strong>Source:</strong> SPX options
+                <strong>Gamma source:</strong> SPX options
+            </div>
+
+            <div>
+                <strong>Displayed levels:</strong> MES
             </div>
 
             <div>
                 <strong>Method:</strong> Filtered + smoothed GEX
-            </div>
-
-            <div>
-                <strong>Instrument:</strong> MES
             </div>
 
             <div>
@@ -393,9 +336,9 @@
 
             <br>
 
-            TradingView provides the live MES
-            price chart. Mach1 independently
-            calculates the gamma levels.
+            Mach1 calculates the gamma levels
+            independently and displays them
+            against the MES price chart.
 
         </div>
 
@@ -404,15 +347,26 @@
 </div>
 
 
-<!-- =========================================================
-     MACH1 DATA
-========================================================= -->
-
 <script>
 
-const DATA_URL =
+const GAMMA_URL =
     "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
+const MES_URL =
+    "https://query1.finance.yahoo.com/v8/finance/chart/MES=F?range=1d&interval=5m&includePrePost=true";
+
+
+let chart = null;
+let candleSeries = null;
+
+let callLine = null;
+let flipLine = null;
+let putLine = null;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function setText(id, value) {
 
@@ -426,159 +380,374 @@ function setText(id, value) {
 }
 
 
-function updateGamma(data) {
+/* =========================================================
+   CREATE CHART
+========================================================= */
 
-    if (!data) {
+function createChart() {
+
+    const container =
+        document.getElementById(
+            "chartContainer"
+        );
+
+    chart =
+        LightweightCharts.createChart(
+            container,
+            {
+                width: container.clientWidth,
+                height: container.clientHeight,
+
+                layout: {
+                    background: {
+                        color: "#0b0f14"
+                    },
+                    textColor: "#b8c2cc"
+                },
+
+                grid: {
+                    vertLines: {
+                        color: "rgba(38,49,61,0.35)"
+                    },
+                    horzLines: {
+                        color: "rgba(38,49,61,0.35)"
+                    }
+                },
+
+                rightPriceScale: {
+                    borderColor: "#26313d"
+                },
+
+                timeScale: {
+                    borderColor: "#26313d",
+                    timeVisible: true,
+                    secondsVisible: false
+                },
+
+                crosshair: {
+                    mode:
+                        LightweightCharts.CrosshairMode
+                            .Normal
+                }
+            }
+        );
+
+
+    candleSeries =
+        chart.addCandlestickSeries(
+            {
+                upColor: "#69f0ae",
+                downColor: "#ff5252",
+                borderUpColor: "#69f0ae",
+                borderDownColor: "#ff5252",
+                wickUpColor: "#69f0ae",
+                wickDownColor: "#ff5252"
+            }
+        );
+
+
+    window.addEventListener(
+        "resize",
+        resizeChart
+    );
+
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resizeChart() {
+
+    const container =
+        document.getElementById(
+            "chartContainer"
+        );
+
+    if (!chart) {
         return;
     }
 
+    chart.resize(
+        container.clientWidth,
+        container.clientHeight
+    );
 
-    /* =====================================================
-       LEVELS
-    ===================================================== */
-
-    const callWall =
-        Number(data.call_wall);
-
-    const gammaFlip =
-        Number(data.gamma_flip);
-
-    const putWall =
-        Number(data.put_wall);
+}
 
 
-    if (Number.isFinite(callWall)) {
+/* =========================================================
+   LOAD MES DATA
+========================================================= */
 
-        const value =
-            callWall.toFixed(2);
+async function loadMES() {
 
-        setText(
-            "callWall",
-            value
-        );
+    try {
 
-        setText(
-            "panelCallWall",
-            value
-        );
-    }
-
-
-    if (Number.isFinite(gammaFlip)) {
-
-        const value =
-            gammaFlip.toFixed(2);
-
-        setText(
-            "gammaFlip",
-            value
-        );
-
-        setText(
-            "panelGammaFlip",
-            value
-        );
-    }
-
-
-    if (Number.isFinite(putWall)) {
-
-        const value =
-            putWall.toFixed(2);
-
-        setText(
-            "putWall",
-            value
-        );
-
-        setText(
-            "panelPutWall",
-            value
-        );
-    }
-
-
-    /* =====================================================
-       REGIME
-    ===================================================== */
-
-    const regime =
-        document.getElementById("regime");
-
-    if (data.regime) {
-
-        regime.textContent =
-            data.regime;
-
-        if (
-            data.regime ===
-            "NEGATIVE_GAMMA"
-        ) {
-
-            regime.style.color =
-                "#ff5252";
-
-            regime.style.background =
-                "rgba(255,82,82,0.12)";
-        }
-
-        else if (
-            data.regime ===
-            "POSITIVE_GAMMA"
-        ) {
-
-            regime.style.color =
-                "#69f0ae";
-
-            regime.style.background =
-                "rgba(105,240,174,0.12)";
-        }
-
-        else {
-
-            regime.style.color =
-                "#ffffff";
-
-            regime.style.background =
-                "rgba(255,255,255,0.08)";
-        }
-    }
-
-
-    /* =====================================================
-       UPDATE TIME
-    ===================================================== */
-
-    if (data.updated_utc) {
-
-        const date =
-            new Date(
-                data.updated_utc
+        const response =
+            await fetch(
+                MES_URL +
+                "&_=" +
+                Date.now()
             );
 
-        const formatted =
-            date.toLocaleString(
-                "en-US",
+        if (!response.ok) {
+
+            throw new Error(
+                "MES HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const json =
+            await response.json();
+
+        const result =
+            json.chart.result[0];
+
+        if (!result) {
+
+            throw new Error(
+                "No MES market data."
+            );
+
+        }
+
+
+        const timestamps =
+            result.timestamp || [];
+
+        const quote =
+            result.indicators
+                .quote[0];
+
+
+        const opens =
+            quote.open || [];
+
+        const highs =
+            quote.high || [];
+
+        const lows =
+            quote.low || [];
+
+        const closes =
+            quote.close || [];
+
+
+        const candles = [];
+
+
+        for (
+            let i = 0;
+            i < timestamps.length;
+            i++
+        ) {
+
+            if (
+                opens[i] == null ||
+                highs[i] == null ||
+                lows[i] == null ||
+                closes[i] == null
+            ) {
+                continue;
+            }
+
+
+            candles.push(
                 {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                    timeZone: "Asia/Manila"
+                    time:
+                        timestamps[i],
+
+                    open:
+                        Number(opens[i]),
+
+                    high:
+                        Number(highs[i]),
+
+                    low:
+                        Number(lows[i]),
+
+                    close:
+                        Number(closes[i])
                 }
             );
 
-        setText(
-            "updated",
-            "Gamma: " + formatted
+        }
+
+
+        if (!candles.length) {
+
+            throw new Error(
+                "No usable MES candles."
+            );
+
+        }
+
+
+        candleSeries.setData(
+            candles
         );
+
+
+        chart.timeScale()
+            .fitContent();
+
+
+        setText(
+            "chartStatus",
+            "MES • 5-minute"
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "MES data error:",
+            error
+        );
+
+        setText(
+            "chartStatus",
+            "MES data unavailable"
+        );
+
     }
 
 }
 
 
 /* =========================================================
-   LOAD GAMMA DATA
+   GAMMA LEVEL LINES
+========================================================= */
+
+function removeLine(
+    line
+) {
+
+    if (
+        line &&
+        candleSeries
+    ) {
+
+        candleSeries.removePriceLine(
+            line
+        );
+
+    }
+
+}
+
+
+function updateGammaLines(
+    callWall,
+    gammaFlip,
+    putWall
+) {
+
+    removeLine(callLine);
+    removeLine(flipLine);
+    removeLine(putLine);
+
+
+    callLine = null;
+    flipLine = null;
+    putLine = null;
+
+
+    if (
+        Number.isFinite(callWall)
+    ) {
+
+        callLine =
+            candleSeries.createPriceLine(
+                {
+                    price: callWall,
+
+                    color: "#ff5252",
+
+                    lineWidth: 2,
+
+                    lineStyle:
+                        LightweightCharts
+                            .LineStyle
+                            .Solid,
+
+                    axisLabelVisible: true,
+
+                    title:
+                        "CALL WALL"
+                }
+            );
+
+    }
+
+
+    if (
+        Number.isFinite(gammaFlip)
+    ) {
+
+        flipLine =
+            candleSeries.createPriceLine(
+                {
+                    price: gammaFlip,
+
+                    color: "#ffd740",
+
+                    lineWidth: 2,
+
+                    lineStyle:
+                        LightweightCharts
+                            .LineStyle
+                            .Dashed,
+
+                    axisLabelVisible: true,
+
+                    title:
+                        "GAMMA FLIP"
+                }
+            );
+
+    }
+
+
+    if (
+        Number.isFinite(putWall)
+    ) {
+
+        putLine =
+            candleSeries.createPriceLine(
+                {
+                    price: putWall,
+
+                    color: "#69f0ae",
+
+                    lineWidth: 2,
+
+                    lineStyle:
+                        LightweightCharts
+                            .LineStyle
+                            .Solid,
+
+                    axisLabelVisible: true,
+
+                    title:
+                        "PUT WALL"
+                }
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD GAMMA
 ========================================================= */
 
 async function loadGamma() {
@@ -587,7 +756,7 @@ async function loadGamma() {
 
         const response =
             await fetch(
-                DATA_URL +
+                GAMMA_URL +
                 "?t=" +
                 Date.now()
             );
@@ -596,9 +765,10 @@ async function loadGamma() {
         if (!response.ok) {
 
             throw new Error(
-                "HTTP " +
+                "Gamma HTTP " +
                 response.status
             );
+
         }
 
 
@@ -612,7 +782,173 @@ async function loadGamma() {
         );
 
 
-        updateGamma(data);
+        const callWall =
+            Number(data.call_wall);
+
+        const gammaFlip =
+            Number(data.gamma_flip);
+
+        const putWall =
+            Number(data.put_wall);
+
+
+        if (
+            Number.isFinite(callWall)
+        ) {
+
+            const value =
+                callWall.toFixed(2);
+
+            setText(
+                "callWall",
+                value
+            );
+
+            setText(
+                "panelCallWall",
+                value
+            );
+
+        }
+
+
+        if (
+            Number.isFinite(gammaFlip)
+        ) {
+
+            const value =
+                gammaFlip.toFixed(2);
+
+            setText(
+                "gammaFlip",
+                value
+            );
+
+            setText(
+                "panelGammaFlip",
+                value
+            );
+
+        }
+
+
+        if (
+            Number.isFinite(putWall)
+        ) {
+
+            const value =
+                putWall.toFixed(2);
+
+            setText(
+                "putWall",
+                value
+            );
+
+            setText(
+                "panelPutWall",
+                value
+            );
+
+        }
+
+
+        updateGammaLines(
+            callWall,
+            gammaFlip,
+            putWall
+        );
+
+
+        const regime =
+            document.getElementById(
+                "regime"
+            );
+
+
+        if (data.regime) {
+
+            regime.textContent =
+                data.regime;
+
+
+            if (
+                data.regime ===
+                "NEGATIVE_GAMMA"
+            ) {
+
+                regime.style.color =
+                    "#ff5252";
+
+                regime.style.background =
+                    "rgba(255,82,82,0.12)";
+
+            }
+
+            else if (
+                data.regime ===
+                "POSITIVE_GAMMA"
+            ) {
+
+                regime.style.color =
+                    "#69f0ae";
+
+                regime.style.background =
+                    "rgba(105,240,174,0.12)";
+
+            }
+
+            else {
+
+                regime.style.color =
+                    "#ffffff";
+
+                regime.style.background =
+                    "rgba(255,255,255,0.08)";
+
+            }
+
+        }
+
+
+        if (
+            data.updated_utc
+        ) {
+
+            const date =
+                new Date(
+                    data.updated_utc
+                );
+
+
+            const formatted =
+                date.toLocaleString(
+                    "en-US",
+                    {
+                        month:
+                            "short",
+
+                        day:
+                            "numeric",
+
+                        hour:
+                            "numeric",
+
+                        minute:
+                            "2-digit",
+
+                        timeZone:
+                            "Asia/Manila"
+                    }
+                );
+
+
+            setText(
+                "updated",
+                "Gamma: " +
+                formatted
+            );
+
+        }
 
     }
 
@@ -627,21 +963,32 @@ async function loadGamma() {
             "updated",
             "Gamma: data unavailable"
         );
+
     }
 
 }
 
 
 /* =========================================================
-   INITIAL LOAD
+   START
 ========================================================= */
+
+createChart();
+
+loadMES();
 
 loadGamma();
 
 
-/* =========================================================
-   REFRESH EVERY MINUTE
-========================================================= */
+/* Refresh market data every minute */
+
+setInterval(
+    loadMES,
+    60 * 1000
+);
+
+
+/* Refresh gamma every minute */
 
 setInterval(
     loadGamma,
