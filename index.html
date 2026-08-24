@@ -1,230 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mach1 Gamma — MES</title>
 
-    <title>Mach1 Gamma — MES</title>
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #0b0f14;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+#header {
+    height: 76px;
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    gap: 26px;
+    background: #111820;
+    border-bottom: 1px solid #26313d;
+}
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #0b0f14;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
+.brand {
+    font-size: 20px;
+    font-weight: bold;
+    white-space: nowrap;
+}
 
-        #header {
-            height: 76px;
-            display: flex;
-            align-items: center;
-            padding: 0 22px;
-            gap: 26px;
-            background: #111820;
-            border-bottom: 1px solid #26313d;
-        }
+.level {
+    font-size: 14px;
+    white-space: nowrap;
+}
 
-        .brand {
-            font-size: 20px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
+.value {
+    font-size: 17px;
+    font-weight: bold;
+}
 
-        .level {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            white-space: nowrap;
-        }
+.call {
+    color: #ff5252;
+}
 
-        .value {
-            font-size: 17px;
-            font-weight: bold;
-        }
+.flip {
+    color: #ffd740;
+}
 
-        .call {
-            color: #ff5252;
-        }
+.put {
+    color: #69f0ae;
+}
 
-        .flip {
-            color: #ffd740;
-        }
+#regime {
+    margin-left: auto;
+    padding: 7px 12px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+}
 
-        .put {
-            color: #69f0ae;
-        }
+#updated {
+    color: #8b98a5;
+    font-size: 11px;
+    white-space: nowrap;
+}
 
-        #regime {
-            margin-left: auto;
-            padding: 7px 12px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
+#main {
+    width: 100%;
+    height: calc(100% - 76px);
+    display: flex;
+}
 
-        #updated {
-            color: #8b98a5;
-            font-size: 11px;
-            white-space: nowrap;
-        }
+#chart {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+}
 
-        #main {
-            width: 100%;
-            height: calc(100% - 76px);
-            display: flex;
-        }
+#panel {
+    width: 230px;
+    height: 100%;
+    background: #111820;
+    border-left: 1px solid #26313d;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
 
-        #chart {
-            flex: 1;
-            height: 100%;
-            min-width: 0;
-            position: relative;
-        }
+.panel-title {
+    font-size: 13px;
+    color: #8b98a5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
-        #chartContainer {
-            position: absolute;
-            inset: 0;
-        }
+.card {
+    border: 1px solid #26313d;
+    border-radius: 7px;
+    padding: 13px;
+    background: #0d131a;
+}
 
-        #panel {
-            width: 230px;
-            height: 100%;
-            background: #111820;
-            border-left: 1px solid #26313d;
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
+.card-label {
+    font-size: 11px;
+    color: #8b98a5;
+    margin-bottom: 7px;
+}
 
-        .panel-title {
-            font-size: 13px;
-            color: #8b98a5;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
+.card-value {
+    font-size: 22px;
+    font-weight: bold;
+}
 
-        .card {
-            border: 1px solid #26313d;
-            border-radius: 7px;
-            padding: 13px;
-            background: #0d131a;
-        }
+.call-card .card-value {
+    color: #ff5252;
+}
 
-        .card-label {
-            font-size: 11px;
-            color: #8b98a5;
-            margin-bottom: 7px;
-        }
+.flip-card .card-value {
+    color: #ffd740;
+}
 
-        .card-value {
-            font-size: 22px;
-            font-weight: bold;
-        }
+.put-card .card-value {
+    color: #69f0ae;
+}
 
-        .call-card .card-value {
-            color: #ff5252;
-        }
+.info {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #26313d;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #8b98a5;
+}
 
-        .flip-card .card-value {
-            color: #ffd740;
-        }
+.tradingview-widget-container {
+    width: 100%;
+    height: 100%;
+}
 
-        .put-card .card-value {
-            color: #69f0ae;
-        }
+.tradingview-widget-container__widget {
+    width: 100%;
+    height: 100%;
+}
 
-        .info {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #26313d;
-            font-size: 11px;
-            line-height: 1.6;
-            color: #8b98a5;
-        }
+@media (max-width: 900px) {
 
-        #chartStatus {
-            position: absolute;
-            left: 15px;
-            top: 15px;
-            z-index: 10;
-            padding: 6px 9px;
-            border-radius: 4px;
-            background: rgba(11,15,20,0.85);
-            color: #8b98a5;
-            font-size: 11px;
-            pointer-events: none;
-        }
+    html, body {
+        overflow: auto;
+    }
 
-        @media (max-width: 900px) {
+    #header {
+        height: auto;
+        min-height: 120px;
+        padding: 12px 15px;
+        gap: 12px 18px;
+        flex-wrap: wrap;
+    }
 
-            html, body {
-                overflow: auto;
-            }
+    .brand {
+        width: 100%;
+    }
 
-            #header {
-                height: auto;
-                min-height: 120px;
-                padding: 12px 15px;
-                gap: 12px 18px;
-                flex-wrap: wrap;
-            }
+    #regime {
+        margin-left: 0;
+    }
 
-            .brand {
-                width: 100%;
-            }
+    #updated {
+        width: 100%;
+    }
 
-            #regime {
-                margin-left: 0;
-            }
+    #main {
+        height: auto;
+        min-height: calc(100vh - 120px);
+        flex-direction: column;
+    }
 
-            #updated {
-                width: 100%;
-            }
+    #chart {
+        height: 65vh;
+        min-height: 450px;
+    }
 
-            #main {
-                height: auto;
-                min-height: calc(100vh - 120px);
-                flex-direction: column;
-            }
+    #panel {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #26313d;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
 
-            #chart {
-                height: 65vh;
-                min-height: 450px;
-            }
+    .panel-title {
+        grid-column: 1 / -1;
+    }
 
-            #panel {
-                width: 100%;
-                height: auto;
-                border-left: none;
-                border-top: 1px solid #26313d;
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .panel-title {
-                grid-column: 1 / -1;
-            }
-
-            .info {
-                grid-column: 1 / -1;
-                margin-top: 0;
-            }
-        }
-    </style>
+    .info {
+        grid-column: 1 / -1;
+        margin-top: 0;
+    }
+}
+</style>
 </head>
 
 <body>
@@ -250,9 +234,7 @@
         <span class="value" id="putWall">---</span>
     </div>
 
-    <div id="regime">
-        ---
-    </div>
+    <div id="regime">---</div>
 
     <div id="updated">
         Gamma: ---
@@ -260,19 +242,45 @@
 
 </div>
 
-
 <div id="main">
 
     <div id="chart">
 
-        <div id="chartStatus">
-            Loading MES market data...
+        <div class="tradingview-widget-container">
+
+            <div class="tradingview-widget-container__widget"></div>
+
+            <script
+                type="text/javascript"
+                src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+                async>
+            {
+                "autosize": true,
+                "symbol": "CME_MINI:MES1!",
+                "interval": "5",
+                "timezone": "Asia/Manila",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "backgroundColor": "rgba(11,15,20,1)",
+                "gridColor": "rgba(38,49,61,0.35)",
+                "hide_top_toolbar": true,
+                "hide_legend": false,
+                "allow_symbol_change": false,
+                "save_image": false,
+                "calendar": false,
+                "withdateranges": true,
+                "hide_side_toolbar": true,
+                "details": false,
+                "hotlist": false,
+                "studies": [],
+                "support_host": "https://www.tradingview.com"
+            }
+            </script>
+
         </div>
 
-        <div id="chartContainer"></div>
-
     </div>
-
 
     <div id="panel">
 
@@ -281,53 +289,44 @@
         </div>
 
         <div class="card call-card">
-
             <div class="card-label">
                 CALL WALL
             </div>
-
             <div class="card-value" id="panelCallWall">
                 ---
             </div>
-
         </div>
 
         <div class="card flip-card">
-
             <div class="card-label">
                 GAMMA FLIP
             </div>
-
             <div class="card-value" id="panelGammaFlip">
                 ---
             </div>
-
         </div>
 
         <div class="card put-card">
-
             <div class="card-label">
                 PUT WALL
             </div>
-
             <div class="card-value" id="panelPutWall">
                 ---
             </div>
-
         </div>
 
         <div class="info">
 
             <div>
-                <strong>Gamma source:</strong> SPX options
-            </div>
-
-            <div>
-                <strong>Displayed levels:</strong> MES
+                <strong>Source:</strong> SPX options
             </div>
 
             <div>
                 <strong>Method:</strong> Filtered + smoothed GEX
+            </div>
+
+            <div>
+                <strong>Instrument:</strong> MES
             </div>
 
             <div>
@@ -336,9 +335,9 @@
 
             <br>
 
-            Mach1 calculates the gamma levels
-            independently and displays them
-            against the MES price chart.
+            TradingView provides the live MES
+            price chart. Mach1 independently
+            calculates the gamma levels.
 
         </div>
 
@@ -346,27 +345,11 @@
 
 </div>
 
-
 <script>
 
-const GAMMA_URL =
+const DATA_URL =
     "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
-const MES_URL =
-    "https://query1.finance.yahoo.com/v8/finance/chart/MES=F?range=1d&interval=5m&includePrePost=true";
-
-
-let chart = null;
-let candleSeries = null;
-
-let callLine = null;
-let flipLine = null;
-let putLine = null;
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function setText(id, value) {
 
@@ -376,379 +359,117 @@ function setText(id, value) {
     if (element) {
         element.textContent = value;
     }
-
 }
 
 
-/* =========================================================
-   CREATE CHART
-========================================================= */
+function updateGamma(data) {
 
-function createChart() {
-
-    const container =
-        document.getElementById(
-            "chartContainer"
-        );
-
-    chart =
-        LightweightCharts.createChart(
-            container,
-            {
-                width: container.clientWidth,
-                height: container.clientHeight,
-
-                layout: {
-                    background: {
-                        color: "#0b0f14"
-                    },
-                    textColor: "#b8c2cc"
-                },
-
-                grid: {
-                    vertLines: {
-                        color: "rgba(38,49,61,0.35)"
-                    },
-                    horzLines: {
-                        color: "rgba(38,49,61,0.35)"
-                    }
-                },
-
-                rightPriceScale: {
-                    borderColor: "#26313d"
-                },
-
-                timeScale: {
-                    borderColor: "#26313d",
-                    timeVisible: true,
-                    secondsVisible: false
-                },
-
-                crosshair: {
-                    mode:
-                        LightweightCharts.CrosshairMode
-                            .Normal
-                }
-            }
-        );
-
-
-    candleSeries =
-        chart.addCandlestickSeries(
-            {
-                upColor: "#69f0ae",
-                downColor: "#ff5252",
-                borderUpColor: "#69f0ae",
-                borderDownColor: "#ff5252",
-                wickUpColor: "#69f0ae",
-                wickDownColor: "#ff5252"
-            }
-        );
-
-
-    window.addEventListener(
-        "resize",
-        resizeChart
-    );
-
-}
-
-
-/* =========================================================
-   RESIZE
-========================================================= */
-
-function resizeChart() {
-
-    const container =
-        document.getElementById(
-            "chartContainer"
-        );
-
-    if (!chart) {
+    if (!data) {
         return;
     }
 
-    chart.resize(
-        container.clientWidth,
-        container.clientHeight
-    );
+    const callWall =
+        Number(data.call_wall);
 
-}
+    const gammaFlip =
+        Number(data.gamma_flip);
 
-
-/* =========================================================
-   LOAD MES DATA
-========================================================= */
-
-async function loadMES() {
-
-    try {
-
-        const response =
-            await fetch(
-                MES_URL +
-                "&_=" +
-                Date.now()
-            );
-
-        if (!response.ok) {
-
-            throw new Error(
-                "MES HTTP " +
-                response.status
-            );
-
-        }
+    const putWall =
+        Number(data.put_wall);
 
 
-        const json =
-            await response.json();
+    if (Number.isFinite(callWall)) {
 
-        const result =
-            json.chart.result[0];
+        const value =
+            callWall.toFixed(2);
 
-        if (!result) {
-
-            throw new Error(
-                "No MES market data."
-            );
-
-        }
+        setText("callWall", value);
+        setText("panelCallWall", value);
+    }
 
 
-        const timestamps =
-            result.timestamp || [];
+    if (Number.isFinite(gammaFlip)) {
 
-        const quote =
-            result.indicators
-                .quote[0];
+        const value =
+            gammaFlip.toFixed(2);
 
-
-        const opens =
-            quote.open || [];
-
-        const highs =
-            quote.high || [];
-
-        const lows =
-            quote.low || [];
-
-        const closes =
-            quote.close || [];
+        setText("gammaFlip", value);
+        setText("panelGammaFlip", value);
+    }
 
 
-        const candles = [];
+    if (Number.isFinite(putWall)) {
+
+        const value =
+            putWall.toFixed(2);
+
+        setText("putWall", value);
+        setText("panelPutWall", value);
+    }
 
 
-        for (
-            let i = 0;
-            i < timestamps.length;
-            i++
+    const regime =
+        document.getElementById("regime");
+
+
+    if (data.regime) {
+
+        regime.textContent =
+            data.regime;
+
+        if (data.regime === "NEGATIVE_GAMMA") {
+
+            regime.style.color =
+                "#ff5252";
+
+            regime.style.background =
+                "rgba(255,82,82,0.12)";
+
+        } else if (
+            data.regime === "POSITIVE_GAMMA"
         ) {
 
-            if (
-                opens[i] == null ||
-                highs[i] == null ||
-                lows[i] == null ||
-                closes[i] == null
-            ) {
-                continue;
-            }
+            regime.style.color =
+                "#69f0ae";
+
+            regime.style.background =
+                "rgba(105,240,174,0.12)";
+
+        } else {
+
+            regime.style.color =
+                "#ffffff";
+
+            regime.style.background =
+                "rgba(255,255,255,0.08)";
+        }
+    }
 
 
-            candles.push(
+    if (data.updated_utc) {
+
+        const date =
+            new Date(data.updated_utc);
+
+        const formatted =
+            date.toLocaleString(
+                "en-US",
                 {
-                    time:
-                        timestamps[i],
-
-                    open:
-                        Number(opens[i]),
-
-                    high:
-                        Number(highs[i]),
-
-                    low:
-                        Number(lows[i]),
-
-                    close:
-                        Number(closes[i])
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZone: "Asia/Manila"
                 }
             );
-
-        }
-
-
-        if (!candles.length) {
-
-            throw new Error(
-                "No usable MES candles."
-            );
-
-        }
-
-
-        candleSeries.setData(
-            candles
-        );
-
-
-        chart.timeScale()
-            .fitContent();
-
 
         setText(
-            "chartStatus",
-            "MES • 5-minute"
+            "updated",
+            "Gamma: " + formatted
         );
-
-
     }
-
-    catch (error) {
-
-        console.error(
-            "MES data error:",
-            error
-        );
-
-        setText(
-            "chartStatus",
-            "MES data unavailable"
-        );
-
-    }
-
 }
 
-
-/* =========================================================
-   GAMMA LEVEL LINES
-========================================================= */
-
-function removeLine(
-    line
-) {
-
-    if (
-        line &&
-        candleSeries
-    ) {
-
-        candleSeries.removePriceLine(
-            line
-        );
-
-    }
-
-}
-
-
-function updateGammaLines(
-    callWall,
-    gammaFlip,
-    putWall
-) {
-
-    removeLine(callLine);
-    removeLine(flipLine);
-    removeLine(putLine);
-
-
-    callLine = null;
-    flipLine = null;
-    putLine = null;
-
-
-    if (
-        Number.isFinite(callWall)
-    ) {
-
-        callLine =
-            candleSeries.createPriceLine(
-                {
-                    price: callWall,
-
-                    color: "#ff5252",
-
-                    lineWidth: 2,
-
-                    lineStyle:
-                        LightweightCharts
-                            .LineStyle
-                            .Solid,
-
-                    axisLabelVisible: true,
-
-                    title:
-                        "CALL WALL"
-                }
-            );
-
-    }
-
-
-    if (
-        Number.isFinite(gammaFlip)
-    ) {
-
-        flipLine =
-            candleSeries.createPriceLine(
-                {
-                    price: gammaFlip,
-
-                    color: "#ffd740",
-
-                    lineWidth: 2,
-
-                    lineStyle:
-                        LightweightCharts
-                            .LineStyle
-                            .Dashed,
-
-                    axisLabelVisible: true,
-
-                    title:
-                        "GAMMA FLIP"
-                }
-            );
-
-    }
-
-
-    if (
-        Number.isFinite(putWall)
-    ) {
-
-        putLine =
-            candleSeries.createPriceLine(
-                {
-                    price: putWall,
-
-                    color: "#69f0ae",
-
-                    lineWidth: 2,
-
-                    lineStyle:
-                        LightweightCharts
-                            .LineStyle
-                            .Solid,
-
-                    axisLabelVisible: true,
-
-                    title:
-                        "PUT WALL"
-                }
-            );
-
-    }
-
-}
-
-
-/* =========================================================
-   LOAD GAMMA
-========================================================= */
 
 async function loadGamma() {
 
@@ -756,7 +477,7 @@ async function loadGamma() {
 
         const response =
             await fetch(
-                GAMMA_URL +
+                DATA_URL +
                 "?t=" +
                 Date.now()
             );
@@ -765,10 +486,9 @@ async function loadGamma() {
         if (!response.ok) {
 
             throw new Error(
-                "Gamma HTTP " +
+                "HTTP " +
                 response.status
             );
-
         }
 
 
@@ -782,177 +502,9 @@ async function loadGamma() {
         );
 
 
-        const callWall =
-            Number(data.call_wall);
+        updateGamma(data);
 
-        const gammaFlip =
-            Number(data.gamma_flip);
-
-        const putWall =
-            Number(data.put_wall);
-
-
-        if (
-            Number.isFinite(callWall)
-        ) {
-
-            const value =
-                callWall.toFixed(2);
-
-            setText(
-                "callWall",
-                value
-            );
-
-            setText(
-                "panelCallWall",
-                value
-            );
-
-        }
-
-
-        if (
-            Number.isFinite(gammaFlip)
-        ) {
-
-            const value =
-                gammaFlip.toFixed(2);
-
-            setText(
-                "gammaFlip",
-                value
-            );
-
-            setText(
-                "panelGammaFlip",
-                value
-            );
-
-        }
-
-
-        if (
-            Number.isFinite(putWall)
-        ) {
-
-            const value =
-                putWall.toFixed(2);
-
-            setText(
-                "putWall",
-                value
-            );
-
-            setText(
-                "panelPutWall",
-                value
-            );
-
-        }
-
-
-        updateGammaLines(
-            callWall,
-            gammaFlip,
-            putWall
-        );
-
-
-        const regime =
-            document.getElementById(
-                "regime"
-            );
-
-
-        if (data.regime) {
-
-            regime.textContent =
-                data.regime;
-
-
-            if (
-                data.regime ===
-                "NEGATIVE_GAMMA"
-            ) {
-
-                regime.style.color =
-                    "#ff5252";
-
-                regime.style.background =
-                    "rgba(255,82,82,0.12)";
-
-            }
-
-            else if (
-                data.regime ===
-                "POSITIVE_GAMMA"
-            ) {
-
-                regime.style.color =
-                    "#69f0ae";
-
-                regime.style.background =
-                    "rgba(105,240,174,0.12)";
-
-            }
-
-            else {
-
-                regime.style.color =
-                    "#ffffff";
-
-                regime.style.background =
-                    "rgba(255,255,255,0.08)";
-
-            }
-
-        }
-
-
-        if (
-            data.updated_utc
-        ) {
-
-            const date =
-                new Date(
-                    data.updated_utc
-                );
-
-
-            const formatted =
-                date.toLocaleString(
-                    "en-US",
-                    {
-                        month:
-                            "short",
-
-                        day:
-                            "numeric",
-
-                        hour:
-                            "numeric",
-
-                        minute:
-                            "2-digit",
-
-                        timeZone:
-                            "Asia/Manila"
-                    }
-                );
-
-
-            setText(
-                "updated",
-                "Gamma: " +
-                formatted
-            );
-
-        }
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Mach1 Gamma error:",
@@ -963,32 +515,11 @@ async function loadGamma() {
             "updated",
             "Gamma: data unavailable"
         );
-
     }
-
 }
 
 
-/* =========================================================
-   START
-========================================================= */
-
-createChart();
-
-loadMES();
-
 loadGamma();
-
-
-/* Refresh market data every minute */
-
-setInterval(
-    loadMES,
-    60 * 1000
-);
-
-
-/* Refresh gamma every minute */
 
 setInterval(
     loadGamma,
