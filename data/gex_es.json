@@ -4,11 +4,11 @@
   "source": "SPX options",
   "method": "Filtered + smoothed GEX",
   "max_dte": 45,
-  "spx_spot": 7667.45,
-  "es_spot": 7682.0,
-  "call_wall": 7699.55,
-  "gamma_flip": 7682.0,
-  "put_wall": 7614.55,
+  "spx_spot": 7666.9,
+  "es_spot": 7682.25,
+  "call_wall": 7690.35,
+  "gamma_flip": 7682.25,
+  "put_wall": 7615.35,
   "regime": "AT_FLIP",
-  "updated_utc": "2026-08-25T17:43:34.768040+00:00"
+  "updated_utc": "2026-08-25T18:02:07.588635+00:00"
 }
