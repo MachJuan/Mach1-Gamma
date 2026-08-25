@@ -6,24 +6,27 @@
 <title>Mach1 Gamma — MES</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 html, body {
     margin: 0;
+    padding: 0;
     width: 100%;
     height: 100%;
     background: #0b0f14;
-    color: white;
+    color: #fff;
     font-family: Arial, sans-serif;
     overflow: hidden;
 }
 
 #header {
-    height: 70px;
+    height: 76px;
     display: flex;
     align-items: center;
-    gap: 24px;
-    padding: 0 20px;
+    padding: 0 22px;
+    gap: 26px;
     background: #111820;
     border-bottom: 1px solid #26313d;
 }
@@ -31,10 +34,12 @@ html, body {
 .brand {
     font-size: 20px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .level {
-    font-size: 13px;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 .value {
@@ -42,31 +47,100 @@ html, body {
     font-weight: bold;
 }
 
-.call { color: #ff5252; }
-.flip { color: #ffd740; }
-.put { color: #69f0ae; }
+.call {
+    color: #ff5252;
+}
+
+.flip {
+    color: #ffd740;
+}
+
+.put {
+    color: #69f0ae;
+}
 
 #regime {
     margin-left: auto;
     padding: 7px 12px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 #updated {
     color: #8b98a5;
     font-size: 11px;
+    white-space: nowrap;
 }
 
 #main {
-    height: calc(100% - 70px);
+    width: 100%;
+    height: calc(100% - 76px);
     display: flex;
 }
 
 #chart {
     flex: 1;
     min-width: 0;
+    height: 100%;
+}
+
+#panel {
+    width: 230px;
+    height: 100%;
+    background: #111820;
+    border-left: 1px solid #26313d;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.panel-title {
+    font-size: 13px;
+    color: #8b98a5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card {
+    border: 1px solid #26313d;
+    border-radius: 7px;
+    padding: 13px;
+    background: #0d131a;
+}
+
+.card-label {
+    font-size: 11px;
+    color: #8b98a5;
+    margin-bottom: 7px;
+}
+
+.card-value {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.call-card .card-value {
+    color: #ff5252;
+}
+
+.flip-card .card-value {
+    color: #ffd740;
+}
+
+.put-card .card-value {
+    color: #69f0ae;
+}
+
+.info {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #26313d;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #8b98a5;
 }
 
 .tradingview-widget-container {
@@ -79,58 +153,6 @@ html, body {
     height: 100%;
 }
 
-#panel {
-    width: 245px;
-    background: #111820;
-    border-left: 1px solid #26313d;
-    padding: 18px;
-}
-
-.title {
-    color: #8b98a5;
-    font-size: 12px;
-    letter-spacing: 1px;
-    margin-bottom: 15px;
-}
-
-.card {
-    background: #0d131a;
-    border: 1px solid #26313d;
-    border-radius: 7px;
-    padding: 13px;
-    margin-bottom: 12px;
-}
-
-.label {
-    color: #8b98a5;
-    font-size: 10px;
-    margin-bottom: 6px;
-}
-
-.number {
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.call-number { color: #ff5252; }
-.flip-number { color: #ffd740; }
-.put-number { color: #69f0ae; }
-
-#price {
-    color: white;
-}
-
-#bias {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-#status {
-    font-size: 13px;
-    line-height: 1.5;
-    color: #8b98a5;
-}
-
 @media (max-width: 900px) {
 
     html, body {
@@ -139,10 +161,10 @@ html, body {
 
     #header {
         height: auto;
-        min-height: 110px;
+        min-height: 120px;
+        padding: 12px 15px;
+        gap: 12px 18px;
         flex-wrap: wrap;
-        padding: 12px;
-        gap: 10px 15px;
     }
 
     .brand {
@@ -153,8 +175,13 @@ html, body {
         margin-left: 0;
     }
 
+    #updated {
+        width: 100%;
+    }
+
     #main {
         height: auto;
+        min-height: calc(100vh - 120px);
         flex-direction: column;
     }
 
@@ -165,8 +192,20 @@ html, body {
 
     #panel {
         width: 100%;
+        height: auto;
         border-left: none;
         border-top: 1px solid #26313d;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .panel-title {
+        grid-column: 1 / -1;
+    }
+
+    .info {
+        grid-column: 1 / -1;
+        margin-top: 0;
     }
 }
 </style>
@@ -198,11 +237,10 @@ html, body {
     <div id="regime">---</div>
 
     <div id="updated">
-        Updating...
+        Gamma: ---
     </div>
 
 </div>
-
 
 <div id="main">
 
@@ -244,88 +282,62 @@ html, body {
 
     </div>
 
-
     <div id="panel">
 
-        <div class="title">
-            MACH1 TRADING LEVELS
+        <div class="panel-title">
+            Mach1 Gamma Levels
         </div>
 
-
-        <div class="card">
-
-            <div class="label">
-                MES PRICE
-            </div>
-
-            <div class="number" id="price">
-                ---
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="label">
+        <div class="card call-card">
+            <div class="card-label">
                 CALL WALL
             </div>
-
-            <div class="number call-number" id="panelCallWall">
+            <div class="card-value" id="panelCallWall">
                 ---
             </div>
-
         </div>
 
-
-        <div class="card">
-
-            <div class="label">
+        <div class="card flip-card">
+            <div class="card-label">
                 GAMMA FLIP
             </div>
-
-            <div class="number flip-number" id="panelGammaFlip">
+            <div class="card-value" id="panelGammaFlip">
                 ---
             </div>
-
         </div>
 
-
-        <div class="card">
-
-            <div class="label">
+        <div class="card put-card">
+            <div class="card-label">
                 PUT WALL
             </div>
-
-            <div class="number put-number" id="panelPutWall">
+            <div class="card-value" id="panelPutWall">
                 ---
             </div>
-
         </div>
 
+        <div class="info">
 
-        <div class="card">
-
-            <div class="label">
-                MARKET BIAS
+            <div>
+                <strong>Source:</strong> SPX options
             </div>
 
-            <div id="bias">
-                ---
+            <div>
+                <strong>Method:</strong> Filtered + smoothed GEX
             </div>
 
-        </div>
-
-
-        <div class="card">
-
-            <div class="label">
-                STATUS
+            <div>
+                <strong>Instrument:</strong> MES
             </div>
 
-            <div id="status">
-                Waiting for data...
+            <div>
+                <strong>Updates:</strong> Automatic
             </div>
+
+            <br>
+
+            TradingView provides the live MES
+            price chart. Mach1 independently
+            calculates the gamma levels.
 
         </div>
 
@@ -333,11 +345,10 @@ html, body {
 
 </div>
 
-
 <script>
 
 const DATA_URL =
-"https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
+    "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
 
 function setText(id, value) {
@@ -353,11 +364,9 @@ function setText(id, value) {
 
 function updateGamma(data) {
 
-    if (!data) return;
-
-
-    const price =
-        Number(data.es_spot);
+    if (!data) {
+        return;
+    }
 
     const callWall =
         Number(data.call_wall);
@@ -369,16 +378,6 @@ function updateGamma(data) {
         Number(data.put_wall);
 
 
-    if (Number.isFinite(price)) {
-
-        setText(
-            "price",
-            price.toFixed(2)
-        );
-
-    }
-
-
     if (Number.isFinite(callWall)) {
 
         const value =
@@ -386,7 +385,6 @@ function updateGamma(data) {
 
         setText("callWall", value);
         setText("panelCallWall", value);
-
     }
 
 
@@ -397,7 +395,6 @@ function updateGamma(data) {
 
         setText("gammaFlip", value);
         setText("panelGammaFlip", value);
-
     }
 
 
@@ -408,7 +405,6 @@ function updateGamma(data) {
 
         setText("putWall", value);
         setText("panelPutWall", value);
-
     }
 
 
@@ -416,100 +412,37 @@ function updateGamma(data) {
         document.getElementById("regime");
 
 
-    const bias =
-        document.getElementById("bias");
-
-
-    const status =
-        document.getElementById("status");
-
-
-    if (data.regime === "POSITIVE_GAMMA") {
+    if (data.regime) {
 
         regime.textContent =
-            "POSITIVE GAMMA";
+            data.regime;
 
-        regime.style.color =
-            "#69f0ae";
+        if (data.regime === "NEGATIVE_GAMMA") {
 
-        regime.style.background =
-            "rgba(105,240,174,0.12)";
-
-    }
-
-    else if (
-        data.regime === "NEGATIVE_GAMMA"
-    ) {
-
-        regime.textContent =
-            "NEGATIVE GAMMA";
-
-        regime.style.color =
-            "#ff5252";
-
-        regime.style.background =
-            "rgba(255,82,82,0.12)";
-
-    }
-
-    else {
-
-        regime.textContent =
-            data.regime || "UNKNOWN";
-
-        regime.style.color =
-            "#ffd740";
-
-        regime.style.background =
-            "rgba(255,215,64,0.12)";
-
-    }
-
-
-    if (
-        Number.isFinite(price) &&
-        Number.isFinite(gammaFlip)
-    ) {
-
-        if (price > gammaFlip) {
-
-            bias.textContent =
-                "LONG BIAS";
-
-            bias.style.color =
-                "#69f0ae";
-
-            status.textContent =
-                "Price above Gamma Flip. Favor confirmed upside setups.";
-
-        }
-
-        else if (price < gammaFlip) {
-
-            bias.textContent =
-                "SHORT BIAS";
-
-            bias.style.color =
+            regime.style.color =
                 "#ff5252";
 
-            status.textContent =
-                "Price below Gamma Flip. Favor confirmed downside setups.";
+            regime.style.background =
+                "rgba(255,82,82,0.12)";
 
+        } else if (
+            data.regime === "POSITIVE_GAMMA"
+        ) {
+
+            regime.style.color =
+                "#69f0ae";
+
+            regime.style.background =
+                "rgba(105,240,174,0.12)";
+
+        } else {
+
+            regime.style.color =
+                "#ffffff";
+
+            regime.style.background =
+                "rgba(255,255,255,0.08)";
         }
-
-        else {
-
-            bias.textContent =
-                "AT FLIP";
-
-            bias.style.color =
-                "#ffd740";
-
-            status.textContent =
-                "Price is at the Gamma Flip. Wait for direction.";
-
-        }
-
     }
 
 
@@ -532,11 +465,9 @@ function updateGamma(data) {
 
         setText(
             "updated",
-            "Updated " + formatted
+            "Gamma: " + formatted
         );
-
     }
-
 }
 
 
@@ -548,7 +479,10 @@ async function loadGamma() {
             await fetch(
                 DATA_URL +
                 "?t=" +
-                Date.now()
+                Date.now(),
+                {
+                    cache: "no-store"
+                }
             );
 
 
@@ -558,7 +492,6 @@ async function loadGamma() {
                 "HTTP " +
                 response.status
             );
-
         }
 
 
@@ -566,25 +499,26 @@ async function loadGamma() {
             await response.json();
 
 
+        console.log(
+            "Mach1 Gamma:",
+            data
+        );
+
+
         updateGamma(data);
 
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Mach1 Gamma:",
+            "Mach1 Gamma error:",
             error
         );
 
         setText(
             "updated",
-            "Data unavailable"
+            "Gamma: data unavailable"
         );
-
     }
-
 }
 
 
