@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mach1 Gamma — MES</title>
+
+<title>Mach1 Gamma — 1H Direction</title>
 
 <style>
 * {
@@ -16,8 +17,11 @@ html, body {
     width: 100%;
     height: 100%;
     background: #0b0f14;
-    color: #fff;
+    color: #ffffff;
     font-family: Arial, sans-serif;
+}
+
+body {
     overflow: hidden;
 }
 
@@ -26,7 +30,7 @@ html, body {
     display: flex;
     align-items: center;
     padding: 0 22px;
-    gap: 26px;
+    gap: 28px;
     background: #111820;
     border-bottom: 1px solid #26313d;
 }
@@ -38,7 +42,7 @@ html, body {
 }
 
 .level {
-    font-size: 14px;
+    font-size: 13px;
     white-space: nowrap;
 }
 
@@ -59,17 +63,13 @@ html, body {
     color: #69f0ae;
 }
 
-#regime,
-#status {
-    padding: 7px 12px;
-    border-radius: 5px;
-    font-size: 13px;
+#bias {
+    margin-left: auto;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 15px;
     font-weight: bold;
     white-space: nowrap;
-}
-
-#regime {
-    margin-left: auto;
 }
 
 #updated {
@@ -91,7 +91,7 @@ html, body {
 }
 
 #panel {
-    width: 250px;
+    width: 270px;
     height: 100%;
     background: #111820;
     border-left: 1px solid #26313d;
@@ -108,7 +108,26 @@ html, body {
     letter-spacing: 1px;
 }
 
-.card {
+.direction {
+    border: 1px solid #26313d;
+    border-radius: 8px;
+    padding: 18px 14px;
+    background: #0d131a;
+    text-align: center;
+}
+
+.direction-label {
+    font-size: 11px;
+    color: #8b98a5;
+    margin-bottom: 8px;
+}
+
+.direction-value {
+    font-size: 27px;
+    font-weight: bold;
+}
+
+.price-card {
     border: 1px solid #26313d;
     border-radius: 7px;
     padding: 13px;
@@ -118,7 +137,7 @@ html, body {
 .card-label {
     font-size: 11px;
     color: #8b98a5;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
 
 .card-value {
@@ -138,31 +157,21 @@ html, body {
     color: #69f0ae;
 }
 
-.status-card {
-    border: 1px solid #26313d;
-    border-radius: 7px;
+.status {
     padding: 13px;
-    background: #0d131a;
-}
-
-.status-value {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.status-text {
-    margin-top: 8px;
-    font-size: 11px;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #26313d;
+    font-size: 12px;
     line-height: 1.5;
-    color: #8b98a5;
 }
 
 .info {
     margin-top: auto;
-    padding-top: 15px;
+    padding-top: 14px;
     border-top: 1px solid #26313d;
-    font-size: 11px;
-    line-height: 1.6;
+    font-size: 10px;
+    line-height: 1.5;
     color: #8b98a5;
 }
 
@@ -176,28 +185,9 @@ html, body {
     height: 100%;
 }
 
-@media (max-width: 1100px) {
-
-    #header {
-        gap: 15px;
-    }
-
-    .brand {
-        font-size: 17px;
-    }
-
-    .level {
-        font-size: 12px;
-    }
-
-    #panel {
-        width: 230px;
-    }
-}
-
 @media (max-width: 900px) {
 
-    html, body {
+    body {
         overflow: auto;
     }
 
@@ -213,7 +203,7 @@ html, body {
         width: 100%;
     }
 
-    #regime {
+    #bias {
         margin-left: 0;
     }
 
@@ -237,21 +227,6 @@ html, body {
         height: auto;
         border-left: none;
         border-top: 1px solid #26313d;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .panel-title {
-        grid-column: 1 / -1;
-    }
-
-    .status-card {
-        grid-column: 1 / -1;
-    }
-
-    .info {
-        grid-column: 1 / -1;
-        margin-top: 0;
     }
 }
 </style>
@@ -262,12 +237,12 @@ html, body {
 <div id="header">
 
     <div class="brand">
-        MACH1 GAMMA — MES
+        MACH1 GAMMA — 1H DIRECTION
     </div>
 
-    <div class="level call">
-        CALL WALL:
-        <span class="value" id="callWall">---</span>
+    <div class="level">
+        MES:
+        <span class="value" id="mesPrice">---</span>
     </div>
 
     <div class="level flip">
@@ -275,18 +250,16 @@ html, body {
         <span class="value" id="gammaFlip">---</span>
     </div>
 
-    <div class="level put">
-        PUT WALL:
-        <span class="value" id="putWall">---</span>
+    <div id="bias">
+        WAIT
     </div>
-
-    <div id="regime">---</div>
 
     <div id="updated">
         Gamma: ---
     </div>
 
 </div>
+
 
 <div id="main">
 
@@ -303,7 +276,7 @@ html, body {
             {
                 "autosize": true,
                 "symbol": "CME_MINI:MES1!",
-                "interval": "5",
+                "interval": "60",
                 "timezone": "Asia/Manila",
                 "theme": "dark",
                 "style": "1",
@@ -319,7 +292,8 @@ html, body {
                 "hide_side_toolbar": true,
                 "details": false,
                 "hotlist": false,
-                "studies": []
+                "studies": [],
+                "support_host": "https://www.tradingview.com"
             }
             </script>
 
@@ -327,93 +301,137 @@ html, body {
 
     </div>
 
+
     <div id="panel">
 
         <div class="panel-title">
-            MACH1 TRADING LEVELS
+            1H Market Direction
         </div>
 
-        <div class="card">
-            <div class="card-label">
-                MES PRICE
-            </div>
-            <div class="card-value" id="mesPrice">
-                ---
-            </div>
-        </div>
 
-        <div class="card call-card">
-            <div class="card-label">
-                CALL WALL
-            </div>
-            <div class="card-value" id="panelCallWall">
-                ---
-            </div>
-        </div>
+        <div class="direction">
 
-        <div class="card flip-card">
-            <div class="card-label">
-                GAMMA FLIP
-            </div>
-            <div class="card-value" id="panelGammaFlip">
-                ---
-            </div>
-        </div>
-
-        <div class="card put-card">
-            <div class="card-label">
-                PUT WALL
-            </div>
-            <div class="card-value" id="panelPutWall">
-                ---
-            </div>
-        </div>
-
-        <div class="status-card">
-
-            <div class="card-label">
-                BREAKOUT CONFIRMATION
+            <div class="direction-label">
+                CURRENT BIAS
             </div>
 
-            <div class="status-value" id="status">
+            <div
+                class="direction-value"
+                id="directionValue">
                 WAIT
             </div>
 
-            <div class="status-text" id="statusText">
-                Waiting for price direction.
+        </div>
+
+
+        <div class="price-card">
+
+            <div class="card-label">
+                MES PRICE
+            </div>
+
+            <div
+                class="card-value"
+                id="panelMesPrice">
+                ---
             </div>
 
         </div>
 
+
+        <div class="price-card call-card">
+
+            <div class="card-label">
+                CALL WALL
+            </div>
+
+            <div
+                class="card-value"
+                id="callWall">
+                ---
+            </div>
+
+        </div>
+
+
+        <div class="price-card flip-card">
+
+            <div class="card-label">
+                GAMMA FLIP
+            </div>
+
+            <div
+                class="card-value"
+                id="panelGammaFlip">
+                ---
+            </div>
+
+        </div>
+
+
+        <div class="price-card put-card">
+
+            <div class="card-label">
+                PUT WALL
+            </div>
+
+            <div
+                class="card-value"
+                id="putWall">
+                ---
+            </div>
+
+        </div>
+
+
+        <div class="status">
+
+            <strong>STATUS</strong>
+
+            <br><br>
+
+            <span id="statusText">
+                Waiting for gamma data.
+            </span>
+
+        </div>
+
+
         <div class="info">
 
-            <div>
-                <strong>Source:</strong> SPX options
-            </div>
+            <strong>1H DIRECTION TOOL</strong>
 
-            <div>
-                <strong>Method:</strong> Filtered + smoothed GEX
-            </div>
+            <br><br>
 
-            <div>
-                <strong>Instrument:</strong> MES
-            </div>
-
-            <div>
-                <strong>Updates:</strong> Automatic
-            </div>
+            Above Gamma Flip = LONG BIAS
 
             <br>
 
-            Gamma Flip = regime.
-            Call Wall = upside resistance.
-            Put Wall = downside support.
+            Below Gamma Flip = SHORT BIAS
+
+            <br>
+
+            Near Gamma Flip = WAIT
+
+            <br><br>
+
+            Call Wall = upside resistance
+
+            <br>
+
+            Put Wall = downside support
+
+            <br><br>
+
+            Use live 5M Rithmic data in
+            Quantower for execution.
 
         </div>
 
     </div>
 
 </div>
+
 
 <script>
 
@@ -432,48 +450,93 @@ function setText(id, value) {
 }
 
 
-function setStatus(
-    text,
-    message,
-    type
-) {
+function updateBias(price, flip) {
+
+    const bias =
+        document.getElementById("bias");
+
+    const direction =
+        document.getElementById("directionValue");
 
     const status =
-        document.getElementById("status");
-
-    const statusText =
         document.getElementById("statusText");
 
-    if (!status || !statusText) {
+
+    if (!Number.isFinite(price) ||
+        !Number.isFinite(flip)) {
+
+        bias.textContent = "WAIT";
+        direction.textContent = "WAIT";
+        status.textContent =
+            "Gamma data unavailable.";
+
         return;
     }
 
-    status.textContent = text;
-    statusText.textContent = message;
 
-    if (type === "LONG") {
+    /*
+       WAIT ZONE
 
-        status.style.color = "#69f0ae";
-        status.style.background =
-            "rgba(105,240,174,0.12)";
+       0.10% around Gamma Flip.
+       This prevents tiny price differences
+       from constantly changing the bias.
+    */
 
-    } else if (type === "SHORT") {
+    const distance =
+        Math.abs(price - flip) / flip;
 
-        status.style.color = "#ff5252";
-        status.style.background =
-            "rgba(255,82,82,0.12)";
 
-    } else if (type === "FLIP") {
+    if (distance <= 0.001) {
 
-        status.style.color = "#ffd740";
-        status.style.background =
+        bias.textContent = "WAIT";
+        direction.textContent = "WAIT";
+
+        bias.style.color = "#ffd740";
+        bias.style.background =
             "rgba(255,215,64,0.12)";
 
-    } else {
+        direction.style.color = "#ffd740";
 
-        status.style.color = "#ffffff";
-        status.style.background =
-            "rgba(255,255,255,0.08)";
+        status.textContent =
+            "Price is near the Gamma Flip. Wait for direction.";
+
+        return;
+    }
+
+
+    if (price > flip) {
+
+        bias.textContent = "LONG BIAS";
+        direction.textContent = "LONG BIAS";
+
+        bias.style.color = "#69f0ae";
+        bias.style.background =
+            "rgba(105,240,174,0.12)";
+
+        direction.style.color = "#69f0ae";
+
+        status.textContent =
+            "Price is above Gamma Flip. Favor confirmed upside setups.";
+
+        return;
+    }
+
+
+    if (price < flip) {
+
+        bias.textContent = "SHORT BIAS";
+        direction.textContent = "SHORT BIAS";
+
+        bias.style.color = "#ff5252";
+        bias.style.background =
+            "rgba(255,82,82,0.12)";
+
+        direction.style.color = "#ff5252";
+
+        status.textContent =
+            "Price is below Gamma Flip. Favor confirmed downside setups.";
+
+        return;
     }
 }
 
@@ -484,213 +547,72 @@ function updateGamma(data) {
         return;
     }
 
+
+    const price =
+        Number(data.es_spot);
+
+
+    const flip =
+        Number(data.gamma_flip);
+
+
     const callWall =
         Number(data.call_wall);
 
-    const gammaFlip =
-        Number(data.gamma_flip);
 
     const putWall =
         Number(data.put_wall);
 
-    const mesPrice =
-        Number(data.es_spot);
+
+    if (Number.isFinite(price)) {
+
+        const value =
+            price.toFixed(2);
+
+        setText("mesPrice", value);
+        setText("panelMesPrice", value);
+    }
 
 
-    if (Number.isFinite(mesPrice)) {
+    if (Number.isFinite(flip)) {
 
-        setText(
-            "mesPrice",
-            mesPrice.toFixed(2)
-        );
+        const value =
+            flip.toFixed(2);
+
+        setText("gammaFlip", value);
+        setText("panelGammaFlip", value);
     }
 
 
     if (Number.isFinite(callWall)) {
 
-        const value =
-            callWall.toFixed(2);
-
         setText(
             "callWall",
-            value
-        );
-
-        setText(
-            "panelCallWall",
-            value
-        );
-    }
-
-
-    if (Number.isFinite(gammaFlip)) {
-
-        const value =
-            gammaFlip.toFixed(2);
-
-        setText(
-            "gammaFlip",
-            value
-        );
-
-        setText(
-            "panelGammaFlip",
-            value
+            callWall.toFixed(2)
         );
     }
 
 
     if (Number.isFinite(putWall)) {
 
-        const value =
-            putWall.toFixed(2);
-
         setText(
             "putWall",
-            value
-        );
-
-        setText(
-            "panelPutWall",
-            value
+            putWall.toFixed(2)
         );
     }
 
 
-    /*
-     * ========================================================
-     * BREAKOUT LOGIC
-     * ========================================================
-     *
-     * Price above Call Wall  = LONG BREAKOUT
-     * Price below Put Wall   = SHORT BREAKOUT
-     * Price above Flip       = LONG BIAS
-     * Price below Flip       = SHORT BIAS
-     * Near Flip              = WAIT
-     */
-
-    if (
-        Number.isFinite(mesPrice) &&
-        Number.isFinite(callWall) &&
-        mesPrice > callWall
-    ) {
-
-        setStatus(
-            "BREAKOUT LONG",
-            "Price broke above the Call Wall. Look for confirmed long setups.",
-            "LONG"
-        );
-
-    } else if (
-        Number.isFinite(mesPrice) &&
-        Number.isFinite(putWall) &&
-        mesPrice < putWall
-    ) {
-
-        setStatus(
-            "BREAKOUT SHORT",
-            "Price broke below the Put Wall. Look for confirmed short setups.",
-            "SHORT"
-        );
-
-    } else if (
-        Number.isFinite(mesPrice) &&
-        Number.isFinite(gammaFlip)
-    ) {
-
-        const distance =
-            Math.abs(
-                mesPrice - gammaFlip
-            );
-
-        /*
-         * 5 MES points = neutral zone
-         */
-
-        if (distance <= 5) {
-
-            setStatus(
-                "AT FLIP",
-                "Price is near the Gamma Flip. Wait for direction.",
-                "FLIP"
-            );
-
-        } else if (
-            mesPrice > gammaFlip
-        ) {
-
-            setStatus(
-                "LONG BIAS",
-                "Price is above Gamma Flip. Favor confirmed upside setups.",
-                "LONG"
-            );
-
-        } else {
-
-            setStatus(
-                "SHORT BIAS",
-                "Price is below Gamma Flip. Favor confirmed downside setups.",
-                "SHORT"
-            );
-        }
-    }
-
-
-    const regime =
-        document.getElementById("regime");
-
-
-    if (data.regime) {
-
-        let displayRegime =
-            data.regime
-                .replace(
-                    "_",
-                    " "
-                );
-
-        regime.textContent =
-            displayRegime;
-
-        if (
-            data.regime ===
-            "NEGATIVE_GAMMA"
-        ) {
-
-            regime.style.color =
-                "#ff5252";
-
-            regime.style.background =
-                "rgba(255,82,82,0.12)";
-
-        } else if (
-            data.regime ===
-            "POSITIVE_GAMMA"
-        ) {
-
-            regime.style.color =
-                "#69f0ae";
-
-            regime.style.background =
-                "rgba(105,240,174,0.12)";
-
-        } else {
-
-            regime.style.color =
-                "#ffd740";
-
-            regime.style.background =
-                "rgba(255,215,64,0.12)";
-        }
-    }
+    updateBias(
+        price,
+        flip
+    );
 
 
     if (data.updated_utc) {
 
         const date =
-            new Date(
-                data.updated_utc
-            );
+            new Date(data.updated_utc);
+
 
         const formatted =
             date.toLocaleString(
@@ -700,10 +622,10 @@ function updateGamma(data) {
                     day: "numeric",
                     hour: "numeric",
                     minute: "2-digit",
-                    timeZone:
-                        "Asia/Manila"
+                    timeZone: "Asia/Manila"
                 }
             );
+
 
         setText(
             "updated",
@@ -746,12 +668,14 @@ async function loadGamma() {
 
         updateGamma(data);
 
+
     } catch (error) {
 
         console.error(
             "Mach1 Gamma error:",
             error
         );
+
 
         setText(
             "updated",
@@ -762,6 +686,7 @@ async function loadGamma() {
 
 
 loadGamma();
+
 
 setInterval(
     loadGamma,
