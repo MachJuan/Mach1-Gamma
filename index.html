@@ -7,6 +7,7 @@
 <title>Mach1 Gamma — 1H Direction</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -15,39 +16,117 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     background: #0b0f14;
     color: #ffffff;
     font-family: Arial, sans-serif;
 }
 
 body {
-    overflow: hidden;
-}
-
-#header {
-    height: 76px;
     display: flex;
-    align-items: center;
-    padding: 0 22px;
-    gap: 28px;
-    background: #111820;
-    border-bottom: 1px solid #26313d;
+    justify-content: center;
 }
 
-.brand {
-    font-size: 20px;
+.container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 25px;
+}
+
+/* HEADER */
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.title {
+    font-size: 28px;
     font-weight: bold;
-    white-space: nowrap;
+    letter-spacing: 1px;
 }
 
-.level {
+.subtitle {
+    margin-top: 6px;
+    color: #8b98a5;
     font-size: 13px;
-    white-space: nowrap;
 }
 
-.value {
-    font-size: 17px;
+/* DIRECTION CARD */
+
+.direction-card {
+    background: #111820;
+    border: 1px solid #26313d;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.direction-label {
+    color: #8b98a5;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#bias {
+    font-size: 42px;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+.long {
+    color: #69f0ae;
+}
+
+.short {
+    color: #ff5252;
+}
+
+.wait {
+    color: #ffd740;
+}
+
+/* PRICE */
+
+.price-label {
+    margin-top: 22px;
+    color: #8b98a5;
+    font-size: 12px;
+}
+
+#price {
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* LEVELS */
+
+.levels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: #111820;
+    border: 1px solid #26313d;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.card-label {
+    color: #8b98a5;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.card-value {
+    font-size: 25px;
     font-weight: bold;
 }
 
@@ -63,369 +142,196 @@ body {
     color: #69f0ae;
 }
 
-#bias {
-    margin-left: auto;
-    padding: 9px 16px;
-    border-radius: 6px;
-    font-size: 15px;
-    font-weight: bold;
-    white-space: nowrap;
-}
+/* STATUS */
 
-#updated {
-    color: #8b98a5;
-    font-size: 11px;
-    white-space: nowrap;
-}
-
-#main {
-    width: 100%;
-    height: calc(100% - 76px);
-    display: flex;
-}
-
-#chart {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
-}
-
-#panel {
-    width: 270px;
-    height: 100%;
+.status {
+    margin-top: 20px;
     background: #111820;
-    border-left: 1px solid #26313d;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.panel-title {
-    font-size: 13px;
-    color: #8b98a5;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.direction {
     border: 1px solid #26313d;
-    border-radius: 8px;
-    padding: 18px 14px;
-    background: #0d131a;
-    text-align: center;
+    border-radius: 10px;
+    padding: 20px;
 }
 
-.direction-label {
-    font-size: 11px;
+.status-title {
     color: #8b98a5;
+    font-size: 11px;
+    letter-spacing: 1px;
     margin-bottom: 8px;
 }
 
-.direction-value {
-    font-size: 27px;
+#statusText {
+    font-size: 16px;
     font-weight: bold;
 }
 
-.price-card {
-    border: 1px solid #26313d;
-    border-radius: 7px;
-    padding: 13px;
-    background: #0d131a;
-}
+/* FOOTER */
 
-.card-label {
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    color: #687582;
     font-size: 11px;
-    color: #8b98a5;
-    margin-bottom: 6px;
+    line-height: 1.7;
 }
 
-.card-value {
-    font-size: 22px;
-    font-weight: bold;
+#updated {
+    margin-top: 6px;
 }
 
-.call-card .card-value {
-    color: #ff5252;
-}
+/* MOBILE */
 
-.flip-card .card-value {
-    color: #ffd740;
-}
+@media (max-width: 700px) {
 
-.put-card .card-value {
-    color: #69f0ae;
-}
-
-.status {
-    padding: 13px;
-    border-radius: 7px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid #26313d;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.info {
-    margin-top: auto;
-    padding-top: 14px;
-    border-top: 1px solid #26313d;
-    font-size: 10px;
-    line-height: 1.5;
-    color: #8b98a5;
-}
-
-.tradingview-widget-container {
-    width: 100%;
-    height: 100%;
-}
-
-.tradingview-widget-container__widget {
-    width: 100%;
-    height: 100%;
-}
-
-@media (max-width: 900px) {
-
-    body {
-        overflow: auto;
+    .container {
+        padding: 15px;
     }
 
-    #header {
-        height: auto;
-        min-height: 120px;
-        padding: 12px 15px;
-        gap: 12px 18px;
-        flex-wrap: wrap;
-    }
-
-    .brand {
-        width: 100%;
+    .title {
+        font-size: 22px;
     }
 
     #bias {
-        margin-left: 0;
+        font-size: 34px;
     }
 
-    #updated {
-        width: 100%;
+    .levels {
+        grid-template-columns: 1fr;
     }
 
-    #main {
-        height: auto;
-        min-height: calc(100vh - 120px);
-        flex-direction: column;
-    }
-
-    #chart {
-        height: 65vh;
-        min-height: 450px;
-    }
-
-    #panel {
-        width: 100%;
-        height: auto;
-        border-left: none;
-        border-top: 1px solid #26313d;
-    }
 }
+
 </style>
 </head>
 
 <body>
 
-<div id="header">
+<div class="container">
 
-    <div class="brand">
-        MACH1 GAMMA — 1H DIRECTION
-    </div>
+    <!-- HEADER -->
 
-    <div class="level">
-        MES:
-        <span class="value" id="mesPrice">---</span>
-    </div>
+    <div class="header">
 
-    <div class="level flip">
-        GAMMA FLIP:
-        <span class="value" id="gammaFlip">---</span>
-    </div>
+        <div class="title">
+            MACH1 GAMMA — 1H DIRECTION
+        </div>
 
-    <div id="bias">
-        WAIT
-    </div>
-
-    <div id="updated">
-        Gamma: ---
-    </div>
-
-</div>
-
-
-<div id="main">
-
-    <div id="chart">
-
-        <div class="tradingview-widget-container">
-
-            <div class="tradingview-widget-container__widget"></div>
-
-            <script
-                type="text/javascript"
-                src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
-                async>
-            {
-                "autosize": true,
-                "symbol": "CME_MINI:MES1!",
-                "interval": "60",
-                "timezone": "Asia/Manila",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "backgroundColor": "rgba(11,15,20,1)",
-                "gridColor": "rgba(38,49,61,0.35)",
-                "hide_top_toolbar": true,
-                "hide_legend": false,
-                "allow_symbol_change": false,
-                "save_image": false,
-                "calendar": false,
-                "withdateranges": true,
-                "hide_side_toolbar": true,
-                "details": false,
-                "hotlist": false,
-                "studies": [],
-                "support_host": "https://www.tradingview.com"
-            }
-            </script>
-
+        <div class="subtitle">
+            MES • SPX Options Gamma
         </div>
 
     </div>
 
 
-    <div id="panel">
+    <!-- MAIN DIRECTION -->
 
-        <div class="panel-title">
-            1H Market Direction
+    <div class="direction-card">
+
+        <div class="direction-label">
+            CURRENT 1H BIAS
         </div>
 
-
-        <div class="direction">
-
-            <div class="direction-label">
-                CURRENT BIAS
-            </div>
-
-            <div
-                class="direction-value"
-                id="directionValue">
-                WAIT
-            </div>
-
+        <div id="bias" class="wait">
+            WAIT
         </div>
 
-
-        <div class="price-card">
-
-            <div class="card-label">
-                MES PRICE
-            </div>
-
-            <div
-                class="card-value"
-                id="panelMesPrice">
-                ---
-            </div>
-
+        <div class="price-label">
+            MES PRICE
         </div>
 
+        <div id="price">
+            ---
+        </div>
 
-        <div class="price-card call-card">
+    </div>
+
+
+    <!-- GAMMA LEVELS -->
+
+    <div class="levels">
+
+        <div class="card">
 
             <div class="card-label">
                 CALL WALL
             </div>
 
-            <div
-                class="card-value"
-                id="callWall">
+            <div id="callWall"
+                 class="card-value call">
                 ---
             </div>
 
         </div>
 
 
-        <div class="price-card flip-card">
+        <div class="card">
 
             <div class="card-label">
                 GAMMA FLIP
             </div>
 
-            <div
-                class="card-value"
-                id="panelGammaFlip">
+            <div id="gammaFlip"
+                 class="card-value flip">
                 ---
             </div>
 
         </div>
 
 
-        <div class="price-card put-card">
+        <div class="card">
 
             <div class="card-label">
                 PUT WALL
             </div>
 
-            <div
-                class="card-value"
-                id="putWall">
+            <div id="putWall"
+                 class="card-value put">
                 ---
             </div>
 
         </div>
 
+    </div>
 
-        <div class="status">
 
-            <strong>STATUS</strong>
+    <!-- STATUS -->
 
-            <br><br>
+    <div class="status">
 
-            <span id="statusText">
-                Waiting for gamma data.
-            </span>
-
+        <div class="status-title">
+            1H DIRECTION STATUS
         </div>
 
+        <div id="statusText">
+            Waiting for gamma data...
+        </div>
 
-        <div class="info">
+    </div>
 
-            <strong>1H DIRECTION TOOL</strong>
 
-            <br><br>
+    <!-- FOOTER -->
 
+    <div class="footer">
+
+        <div>
             Above Gamma Flip = LONG BIAS
+        </div>
 
-            <br>
-
+        <div>
             Below Gamma Flip = SHORT BIAS
+        </div>
 
-            <br>
-
+        <div>
             Near Gamma Flip = WAIT
+        </div>
 
-            <br><br>
+        <div style="margin-top:10px;">
+            Call Wall = Upside Resistance
+            &nbsp; | &nbsp;
+            Put Wall = Downside Support
+        </div>
 
-            Call Wall = upside resistance
-
-            <br>
-
-            Put Wall = downside support
-
-            <br><br>
-
-            Use live 5M Rithmic data in
-            Quantower for execution.
-
+        <div id="updated">
+            Gamma: ---
         </div>
 
     </div>
@@ -439,109 +345,18 @@ const DATA_URL =
     "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
 
-function setText(id, value) {
+/* ==========================================
+   HOW CLOSE PRICE MUST BE TO FLIP = WAIT
+   ========================================== */
 
-    const element =
-        document.getElementById(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-}
+const WAIT_DISTANCE = 3.0;
 
 
-function updateBias(price, flip) {
+/* ==========================================
+   UPDATE DASHBOARD
+   ========================================== */
 
-    const bias =
-        document.getElementById("bias");
-
-    const direction =
-        document.getElementById("directionValue");
-
-    const status =
-        document.getElementById("statusText");
-
-
-    if (!Number.isFinite(price) ||
-        !Number.isFinite(flip)) {
-
-        bias.textContent = "WAIT";
-        direction.textContent = "WAIT";
-        status.textContent =
-            "Gamma data unavailable.";
-
-        return;
-    }
-
-
-    /*
-       WAIT ZONE
-
-       0.10% around Gamma Flip.
-       This prevents tiny price differences
-       from constantly changing the bias.
-    */
-
-    const distance =
-        Math.abs(price - flip) / flip;
-
-
-    if (distance <= 0.001) {
-
-        bias.textContent = "WAIT";
-        direction.textContent = "WAIT";
-
-        bias.style.color = "#ffd740";
-        bias.style.background =
-            "rgba(255,215,64,0.12)";
-
-        direction.style.color = "#ffd740";
-
-        status.textContent =
-            "Price is near the Gamma Flip. Wait for direction.";
-
-        return;
-    }
-
-
-    if (price > flip) {
-
-        bias.textContent = "LONG BIAS";
-        direction.textContent = "LONG BIAS";
-
-        bias.style.color = "#69f0ae";
-        bias.style.background =
-            "rgba(105,240,174,0.12)";
-
-        direction.style.color = "#69f0ae";
-
-        status.textContent =
-            "Price is above Gamma Flip. Favor confirmed upside setups.";
-
-        return;
-    }
-
-
-    if (price < flip) {
-
-        bias.textContent = "SHORT BIAS";
-        direction.textContent = "SHORT BIAS";
-
-        bias.style.color = "#ff5252";
-        bias.style.background =
-            "rgba(255,82,82,0.12)";
-
-        direction.style.color = "#ff5252";
-
-        status.textContent =
-            "Price is below Gamma Flip. Favor confirmed downside setups.";
-
-        return;
-    }
-}
-
-
-function updateGamma(data) {
+function updateDashboard(data) {
 
     if (!data) {
         return;
@@ -551,68 +366,155 @@ function updateGamma(data) {
     const price =
         Number(data.es_spot);
 
-
-    const flip =
+    const gammaFlip =
         Number(data.gamma_flip);
-
 
     const callWall =
         Number(data.call_wall);
-
 
     const putWall =
         Number(data.put_wall);
 
 
+    /* PRICE */
+
     if (Number.isFinite(price)) {
 
-        const value =
+        document.getElementById("price")
+            .textContent =
             price.toFixed(2);
 
-        setText("mesPrice", value);
-        setText("panelMesPrice", value);
     }
 
 
-    if (Number.isFinite(flip)) {
-
-        const value =
-            flip.toFixed(2);
-
-        setText("gammaFlip", value);
-        setText("panelGammaFlip", value);
-    }
-
+    /* GAMMA LEVELS */
 
     if (Number.isFinite(callWall)) {
 
-        setText(
-            "callWall",
-            callWall.toFixed(2)
-        );
+        document.getElementById("callWall")
+            .textContent =
+            callWall.toFixed(2);
+
+    }
+
+
+    if (Number.isFinite(gammaFlip)) {
+
+        document.getElementById("gammaFlip")
+            .textContent =
+            gammaFlip.toFixed(2);
+
     }
 
 
     if (Number.isFinite(putWall)) {
 
-        setText(
-            "putWall",
-            putWall.toFixed(2)
-        );
+        document.getElementById("putWall")
+            .textContent =
+            putWall.toFixed(2);
+
     }
 
 
-    updateBias(
-        price,
-        flip
-    );
+    /* ======================================
+       CALCULATE 1H BIAS
+       ====================================== */
 
+    const bias =
+        document.getElementById("bias");
+
+    const status =
+        document.getElementById("statusText");
+
+
+    bias.className = "wait";
+
+
+    if (
+        !Number.isFinite(price) ||
+        !Number.isFinite(gammaFlip)
+    ) {
+
+        bias.textContent =
+            "WAIT";
+
+        status.textContent =
+            "Gamma data unavailable.";
+
+        return;
+    }
+
+
+    const distance =
+        Math.abs(
+            price - gammaFlip
+        );
+
+
+    /* ======================================
+       NEAR GAMMA FLIP
+       ====================================== */
+
+    if (distance <= WAIT_DISTANCE) {
+
+        bias.textContent =
+            "WAIT";
+
+        bias.className =
+            "wait";
+
+        status.textContent =
+            "Price is near the Gamma Flip. Wait for direction.";
+
+    }
+
+
+    /* ======================================
+       ABOVE GAMMA FLIP
+       ====================================== */
+
+    else if (price > gammaFlip) {
+
+        bias.textContent =
+            "LONG BIAS";
+
+        bias.className =
+            "long";
+
+        status.textContent =
+            "Price is above Gamma Flip. Favor confirmed upside setups.";
+
+    }
+
+
+    /* ======================================
+       BELOW GAMMA FLIP
+       ====================================== */
+
+    else {
+
+        bias.textContent =
+            "SHORT BIAS";
+
+        bias.className =
+            "short";
+
+        status.textContent =
+            "Price is below Gamma Flip. Favor confirmed downside setups.";
+
+    }
+
+
+    /* ======================================
+       UPDATED TIME
+       ====================================== */
 
     if (data.updated_utc) {
 
         const date =
-            new Date(data.updated_utc);
-
+            new Date(
+                data.updated_utc
+            );
 
         const formatted =
             date.toLocaleString(
@@ -626,14 +528,18 @@ function updateGamma(data) {
                 }
             );
 
+        document.getElementById("updated")
+            .textContent =
+            "Gamma: " + formatted;
 
-        setText(
-            "updated",
-            "Gamma: " + formatted
-        );
     }
+
 }
 
+
+/* ==========================================
+   LOAD DATA
+   ========================================== */
 
 async function loadGamma() {
 
@@ -653,6 +559,7 @@ async function loadGamma() {
                 "HTTP " +
                 response.status
             );
+
         }
 
 
@@ -666,7 +573,7 @@ async function loadGamma() {
         );
 
 
-        updateGamma(data);
+        updateDashboard(data);
 
 
     } catch (error) {
@@ -677,16 +584,25 @@ async function loadGamma() {
         );
 
 
-        setText(
-            "updated",
-            "Gamma: data unavailable"
-        );
+        document.getElementById("statusText")
+            .textContent =
+            "Unable to load gamma data.";
+
     }
+
 }
 
 
+/* ==========================================
+   INITIAL LOAD
+   ========================================== */
+
 loadGamma();
 
+
+/* ==========================================
+   AUTO UPDATE EVERY 60 SECONDS
+   ========================================== */
 
 setInterval(
     loadGamma,
