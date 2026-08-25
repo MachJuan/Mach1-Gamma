@@ -29,7 +29,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1050px;
     padding: 25px;
 }
 
@@ -37,7 +37,7 @@ body {
 
 .header {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 22px;
 }
 
 .title {
@@ -52,15 +52,16 @@ body {
     font-size: 13px;
 }
 
-/* DIRECTION CARD */
+
+/* MAIN DIRECTION */
 
 .direction-card {
     background: #111820;
     border: 1px solid #26313d;
     border-radius: 12px;
-    padding: 30px;
+    padding: 28px;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .direction-label {
@@ -71,9 +72,9 @@ body {
 }
 
 #bias {
-    font-size: 42px;
+    font-size: 44px;
     font-weight: bold;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .long {
@@ -88,10 +89,8 @@ body {
     color: #ffd740;
 }
 
-/* PRICE */
-
 .price-label {
-    margin-top: 22px;
+    margin-top: 18px;
     color: #8b98a5;
     font-size: 12px;
 }
@@ -101,6 +100,21 @@ body {
     font-weight: bold;
     margin-top: 5px;
 }
+
+
+/* DISTANCE */
+
+.distance {
+    margin-top: 12px;
+    color: #8b98a5;
+    font-size: 12px;
+}
+
+#distanceValue {
+    font-weight: bold;
+    color: #ffffff;
+}
+
 
 /* LEVELS */
 
@@ -142,10 +156,11 @@ body {
     color: #69f0ae;
 }
 
+
 /* STATUS */
 
 .status {
-    margin-top: 20px;
+    margin-top: 18px;
     background: #111820;
     border: 1px solid #26313d;
     border-radius: 10px;
@@ -164,10 +179,46 @@ body {
     font-weight: bold;
 }
 
+
+/* RULES */
+
+.rules {
+    margin-top: 18px;
+    background: #111820;
+    border: 1px solid #26313d;
+    border-radius: 10px;
+    padding: 18px;
+}
+
+.rules-title {
+    color: #8b98a5;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.rule {
+    font-size: 13px;
+    margin: 7px 0;
+}
+
+.rule-long {
+    color: #69f0ae;
+}
+
+.rule-short {
+    color: #ff5252;
+}
+
+.rule-wait {
+    color: #ffd740;
+}
+
+
 /* FOOTER */
 
 .footer {
-    margin-top: 20px;
+    margin-top: 18px;
     text-align: center;
     color: #687582;
     font-size: 11px;
@@ -177,6 +228,7 @@ body {
 #updated {
     margin-top: 6px;
 }
+
 
 /* MOBILE */
 
@@ -203,9 +255,11 @@ body {
 </style>
 </head>
 
+
 <body>
 
 <div class="container">
+
 
     <!-- HEADER -->
 
@@ -222,7 +276,7 @@ body {
     </div>
 
 
-    <!-- MAIN DIRECTION -->
+    <!-- DIRECTION -->
 
     <div class="direction-card">
 
@@ -242,12 +296,18 @@ body {
             ---
         </div>
 
+        <div class="distance">
+            Distance from Gamma Flip:
+            <span id="distanceValue">---</span>
+        </div>
+
     </div>
 
 
-    <!-- GAMMA LEVELS -->
+    <!-- LEVELS -->
 
     <div class="levels">
+
 
         <div class="card">
 
@@ -290,6 +350,7 @@ body {
 
         </div>
 
+
     </div>
 
 
@@ -308,26 +369,47 @@ body {
     </div>
 
 
+    <!-- RULES -->
+
+    <div class="rules">
+
+        <div class="rules-title">
+            TRADING RULES
+        </div>
+
+        <div class="rule rule-long">
+            ABOVE GAMMA FLIP → LONG BIAS
+        </div>
+
+        <div class="rule rule-short">
+            BELOW GAMMA FLIP → SHORT BIAS
+        </div>
+
+        <div class="rule rule-wait">
+            WITHIN ±3 POINTS → WAIT
+        </div>
+
+        <div class="rule">
+            Call Wall → Upside Resistance
+        </div>
+
+        <div class="rule">
+            Put Wall → Downside Support
+        </div>
+
+    </div>
+
+
     <!-- FOOTER -->
 
     <div class="footer">
 
         <div>
-            Above Gamma Flip = LONG BIAS
+            Use live 5M Rithmic data in Quantower for execution.
         </div>
 
         <div>
-            Below Gamma Flip = SHORT BIAS
-        </div>
-
-        <div>
-            Near Gamma Flip = WAIT
-        </div>
-
-        <div style="margin-top:10px;">
-            Call Wall = Upside Resistance
-            &nbsp; | &nbsp;
-            Put Wall = Downside Support
+            Mach1 Gamma independently calculates the gamma levels.
         </div>
 
         <div id="updated">
@@ -336,17 +418,23 @@ body {
 
     </div>
 
+
 </div>
 
 
 <script>
+
+
+/* ==========================================
+   DATA SOURCE
+   ========================================== */
 
 const DATA_URL =
     "https://machjuan.github.io/Mach1-Gamma/data/gex_es.json";
 
 
 /* ==========================================
-   HOW CLOSE PRICE MUST BE TO FLIP = WAIT
+   WAIT ZONE
    ========================================== */
 
 const WAIT_DISTANCE = 3.0;
@@ -387,7 +475,7 @@ function updateDashboard(data) {
     }
 
 
-    /* GAMMA LEVELS */
+    /* CALL WALL */
 
     if (Number.isFinite(callWall)) {
 
@@ -398,6 +486,8 @@ function updateDashboard(data) {
     }
 
 
+    /* GAMMA FLIP */
+
     if (Number.isFinite(gammaFlip)) {
 
         document.getElementById("gammaFlip")
@@ -406,6 +496,8 @@ function updateDashboard(data) {
 
     }
 
+
+    /* PUT WALL */
 
     if (Number.isFinite(putWall)) {
 
@@ -417,7 +509,7 @@ function updateDashboard(data) {
 
 
     /* ======================================
-       CALCULATE 1H BIAS
+       DIRECTION
        ====================================== */
 
     const bias =
@@ -426,8 +518,8 @@ function updateDashboard(data) {
     const status =
         document.getElementById("statusText");
 
-
-    bias.className = "wait";
+    const distanceElement =
+        document.getElementById("distanceValue");
 
 
     if (
@@ -438,21 +530,33 @@ function updateDashboard(data) {
         bias.textContent =
             "WAIT";
 
+        bias.className =
+            "wait";
+
         status.textContent =
             "Gamma data unavailable.";
 
+        distanceElement.textContent =
+            "---";
+
         return;
+
     }
 
 
+    const difference =
+        price - gammaFlip;
+
     const distance =
-        Math.abs(
-            price - gammaFlip
-        );
+        Math.abs(difference);
+
+
+    distanceElement.textContent =
+        distance.toFixed(2) + " points";
 
 
     /* ======================================
-       NEAR GAMMA FLIP
+       WAIT ZONE
        ====================================== */
 
     if (distance <= WAIT_DISTANCE) {
@@ -470,7 +574,7 @@ function updateDashboard(data) {
 
 
     /* ======================================
-       ABOVE GAMMA FLIP
+       LONG
        ====================================== */
 
     else if (price > gammaFlip) {
@@ -488,7 +592,7 @@ function updateDashboard(data) {
 
 
     /* ======================================
-       BELOW GAMMA FLIP
+       SHORT
        ====================================== */
 
     else {
@@ -506,7 +610,7 @@ function updateDashboard(data) {
 
 
     /* ======================================
-       UPDATED TIME
+       UPDATED
        ====================================== */
 
     if (data.updated_utc) {
@@ -538,7 +642,7 @@ function updateDashboard(data) {
 
 
 /* ==========================================
-   LOAD DATA
+   LOAD GAMMA
    ========================================== */
 
 async function loadGamma() {
@@ -601,13 +705,14 @@ loadGamma();
 
 
 /* ==========================================
-   AUTO UPDATE EVERY 60 SECONDS
+   AUTO UPDATE
    ========================================== */
 
 setInterval(
     loadGamma,
     60 * 1000
 );
+
 
 </script>
 
