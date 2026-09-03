@@ -5,10 +5,10 @@
   "method": "Filtered + smoothed GEX",
   "max_dte": 45,
   "spx_spot": 7666.6,
-  "es_spot": 7673.25,
+  "es_spot": 7684.5,
   "call_wall": null,
   "gamma_flip": null,
   "put_wall": null,
   "regime": "UNKNOWN",
-  "updated_utc": "2026-09-03T07:07:35.511422+00:00"
+  "updated_utc": "2026-09-03T09:05:50.825576+00:00"
 }
